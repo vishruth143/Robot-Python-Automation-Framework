@@ -1,0 +1,8 @@
+.idea
+__pycache__
+.pytest_cache
+.venv
+.DS_Store
+tests/__pycache__
+tests/pytest_cache
+output
