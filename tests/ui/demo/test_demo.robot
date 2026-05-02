@@ -1,7 +1,5 @@
 *** Settings ***
 Documentation    Validate the login form
-Library    SeleniumLibrary
-Library    Collections
 Test Setup       Open the browser with the login page practice url
 Test Teardown    Close Browser Session
 Resource    resource.robot

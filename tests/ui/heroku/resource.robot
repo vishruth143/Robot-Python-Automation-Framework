@@ -1,15 +1,9 @@
 *** Settings ***
 Documentation    A resource file with reusable keywords and variables for
 ...              The Internet Herokuapp (https://the-internet.herokuapp.com/)
-Library          SeleniumLibrary
-Library          Collections
 Resource         ../common/browser.robot
 
 *** Variables ***
-${REGION}     %{REGION=QA}
-${BROWSER}    %{BROWSER=Chrome}
-${HEADLESS}   %{HEADLESS=TRUE}
-
 &{APP_URLS}
 ...    DEV=https://the-internet.herokuapp.com
 ...    QA=https://the-internet.herokuapp.com

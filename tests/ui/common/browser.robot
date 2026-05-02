@@ -4,8 +4,13 @@ Documentation    Shared browser launch and teardown keywords.
 ...              Supports Chrome, Edge and Firefox in both headless
 ...              and headful modes, driven by the BROWSER and HEADLESS
 ...              variables (defaults: Chrome / TRUE).
-Library          SeleniumLibrary
+Library          SeleniumLibrary    run_on_failure=Capture Page Screenshot    screenshot_root_directory=EMBED
 Library          Collections
+
+*** Variables ***
+${REGION}     %{REGION=QA}
+${BROWSER}    %{BROWSER=Chrome}
+${HEADLESS}   %{HEADLESS=TRUE}
 
 *** Keywords ***
 Open Browser For URL

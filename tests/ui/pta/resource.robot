@@ -4,14 +4,9 @@ Documentation    A resource file with reusable keywords and variables.
 ...              The system specific keywords created here form our own
 ...              Domain specific language. They utilize keywords provided
 ...              by the imported SeleniumLibrary
-Library          SeleniumLibrary
-Library          Collections
 Resource         ../common/browser.robot
 
 *** Variables ***
-${REGION}     %{REGION=QA}
-${BROWSER}    %{BROWSER=Chrome}
-${HEADLESS}   %{HEADLESS=TRUE}
 
 &{APP_URLS}
 ...    DEV=https://practicetestautomation.com/practice-test-login/
@@ -37,7 +32,7 @@ ${success_message}            //strong[contains(text(),'Congratulations')]
 ${logout_btn}                 //a[text()='Log out']
 
 *** Keywords ***
-Open the browser with the login page practice url
+Open the browser with the PTA website url
     ${region_upper}=    Evaluate    '${REGION}'.upper()
     ${app_url}=         Get From Dictionary    ${APP_URLS}    ${region_upper}
     Log    Running against [${region_upper}] → ${app_url}

@@ -4,15 +4,9 @@ Documentation    A resource file with reusable keywords and variables.
 ...              The system specific keywords created here form our own
 ...              Domain specific language. They utilize keywords provided
 ...              by the imported SeleniumLibrary
-Library          SeleniumLibrary
-Library          Collections
 Resource         ../common/browser.robot
 
 *** Variables ***
-${REGION}     %{REGION=QA}
-${BROWSER}    %{BROWSER=Chrome}
-${HEADLESS}   %{HEADLESS=TRUE}
-
 &{APP_URLS}
 ...    DEV=https://dev.rahulshettyacademy.com/loginpagePractise
 ...    QA=https://rahulshettyacademy.com/loginpagePractise

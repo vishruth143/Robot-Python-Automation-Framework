@@ -1,8 +1,7 @@
 *** Settings ***
 Documentation    Validate the Practice Test Automation login page
 ...              https://practicetestautomation.com/practice-test-login/
-Library          SeleniumLibrary
-Test Setup       Open the browser with the login page practice url
+Test Setup       Open the browser with the PTA website url
 Test Teardown    Close Browser Session
 Resource         resource.robot
 

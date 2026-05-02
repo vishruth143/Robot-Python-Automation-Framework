@@ -1,8 +1,6 @@
 *** Settings ***
 Documentation    Test suite for The Internet Herokuapp
 ...              https://the-internet.herokuapp.com/
-Library          SeleniumLibrary
-Library          Collections
 Test Teardown    Close Browser Session
 Resource         resource.robot
 
