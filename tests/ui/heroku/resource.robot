@@ -7,8 +7,8 @@ Documentation    Resource file for The Internet Herokuapp UI suite.
 ...              Covers: Form Authentication, Checkboxes, Dropdown, Add/Remove Elements.
 ...
 ...              Browser, headless mode and target environment are controlled via
-...              BROWSER, HEADLESS and REGION — inherited from common/browser.robot.
-Resource         ../common/browser.robot
+...              BROWSER, HEADLESS and REGION — inherited from common/common.robot.
+Resource         ../common/common.robot
 
 *** Variables ***
 &{APP_URLS}

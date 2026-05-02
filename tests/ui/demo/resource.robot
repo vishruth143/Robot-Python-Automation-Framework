@@ -6,8 +6,8 @@ Documentation    Resource file for the Demo UI suite (rahulshettyacademy.com).
 ...              Covers: Login validation, Shopping cart card verification.
 ...
 ...              Browser, headless mode and target environment are controlled via
-...              BROWSER, HEADLESS and REGION — inherited from common/browser.robot.
-Resource         ../common/browser.robot
+...              BROWSER, HEADLESS and REGION — inherited from common/common.robot.
+Resource         ../common/common.robot
 
 *** Variables ***
 &{APP_URLS}

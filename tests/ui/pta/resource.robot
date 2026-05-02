@@ -5,8 +5,8 @@ Documentation    Resource file for the Practice Test Automation (PTA) UI suite.
 ...              and the browser setup keyword for the PTA login page.
 ...
 ...              Browser, headless mode and target environment are controlled via
-...              BROWSER, HEADLESS and REGION — inherited from common/browser.robot.
-Resource         ../common/browser.robot
+...              BROWSER, HEADLESS and REGION — inherited from common/common.robot.
+Resource         ../common/common.robot
 
 *** Variables ***
 

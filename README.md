@@ -25,6 +25,7 @@ Cross-browser UI Testing · Keyword-Driven & Data-Driven Testing · CI/CD Ready
    - [UI · Heroku](#ui--heroku)
    - [UI · Demo](#ui--demo)
    - [Browser & Headless Mode Quick Reference](#browser--headless-mode-quick-reference)
+   - [Skipping Tests](#skipping-tests)
 7. [Reports](#-reports)
    - [Built-in Robot Report](#built-in-robot-report)
 8. [CI/CD Integration](#-cicd-integration)
@@ -49,7 +50,7 @@ Cross-browser UI Testing · Keyword-Driven & Data-Driven Testing · CI/CD Ready
 | 9  | 🧩 Reusable demo tests for validation and learning                                            | ✅     |
 | 10 | ⚙️ Runtime `--variable` overrides for `BROWSER`, `HEADLESS` and `REGION` — no code changes needed | ✅ |
 | 11 | 🌍 Multi-environment support via `REGION` variable (`DEV`, `QA`, `STAGE`, `PROD`)            | ✅     |
-| 12 | 🔗 Centralised browser setup in `tests/ui/common/browser.robot`                              | ✅     |
+| 12 | 🔗 Centralised browser setup and variables (`BROWSER`, `HEADLESS`, `REGION`) in `tests/ui/common/common.robot` | ✅     |
 
 ---
 
@@ -101,12 +102,13 @@ Robot-Python-Automation-Framework/
 │
 ├── executor/                                      # Batch scripts for one-click test execution
 │   ├── pta_ui_tests_executor.bat                  # Cleans output & runs PTA UI tests
-│   └── heroku_ui_tests_executor.bat               # Cleans output & runs Heroku UI tests
+│   ├── heroku_ui_tests_executor.bat               # Cleans output & runs Heroku UI tests
+│   └── demo_ui_tests_executor.bat                 # Cleans output & runs Demo UI tests
 │
 ├── tests/                                         # Test suite root
 │   └── ui/                                        # UI test suites
 │       ├── common/
-│       │   └── browser.robot                      # Shared browser launch & teardown keywords
+│       │   └── common.robot                      # Shared browser launch & teardown keywords
 │       │
 │       ├── demo/                                  # Demo / learning tests (rahulshettyacademy)
 │       │   ├── resource.robot                     # Demo-specific keywords, variables & URLs
@@ -129,7 +131,7 @@ Robot-Python-Automation-Framework/
 
 ## 🌱 Variables
 
-Three variables in each suite's `resource.robot` control the browser, headless mode, and target environment. They have defaults and can be overridden at runtime via `--variable`.
+Three variables defined in `tests/ui/common/common.robot` control the browser, headless mode, and target environment. They are inherited by all suite `resource.robot` files and can be overridden at runtime via `--variable`.
 
 ### UI Testing
 
@@ -139,9 +141,11 @@ Three variables in each suite's `resource.robot` control the browser, headless m
 | `HEADLESS` | Run without a visible browser window                     | `TRUE`   | `TRUE`, `FALSE`                      | Optional |
 | `REGION`   | Target environment                                       | `QA`     | `DEV`, `QA`, `STAGE`, `PROD`         | Optional |
 
+> **Defined in:** `tests/ui/common/common.robot` — automatically inherited by all suites via `Resource ../common/common.robot`.
+>
 > Override at runtime — **no code changes needed**:
 > ```powershell
-> robot --variable BROWSER:Firefox --variable HEADLESS:FALSE --variable REGION:STAGE tests/ui/pta/
+> robot -d ouput --variable BROWSER:Firefox --variable HEADLESS:FALSE --variable REGION:STAGE tests/ui/pta/
 > ```
 
 ### How headless mode works per browser
@@ -196,6 +200,7 @@ The `executor/` folder contains ready-to-use `.bat` scripts for one-click test e
 |-------------------------------|----------------|-----------------------------------|
 | `pta_ui_tests_executor.bat`   | `tests/ui/pta/`    | Chrome · Headless · QA region |
 | `heroku_ui_tests_executor.bat`| `tests/ui/heroku/` | Chrome · Headless · QA region |
+| `demo_ui_tests_executor.bat`  | `tests/ui/demo/`   | Chrome · Headful · QA region  |
 
 **Execute from PowerShell (from any directory):**
 
@@ -205,6 +210,9 @@ The `executor/` folder contains ready-to-use `.bat` scripts for one-click test e
 
 # Run Heroku tests
 .\executor\heroku_ui_tests_executor.bat
+
+# Run Demo tests
+.\executor\demo_ui_tests_executor.bat
 ```
 
 > The `BROWSER`, `HEADLESS`, and `REGION` defaults can be changed directly inside each `.bat` file — no other code changes needed.
@@ -274,6 +282,7 @@ Tests cover login validation and shopping cart card verification against [rahuls
 |-----------|--------------------------------------------------|
 | TC1       | Validate un-successful login                     |
 | TC2       | Validate cards display in the shopping page      |
+| TC3       | Select the card by name from the shop page       |
 
 ```powershell
 # Run all tests in the demo suite (Chrome headless by default)
@@ -302,6 +311,98 @@ robot -d output --rerunfailed output/output.xml tests/
 | Edge    | Headful  | `robot -d output --variable BROWSER:Edge --variable HEADLESS:FALSE tests/ui/`    |
 | Firefox | Headless | `robot -d output --variable BROWSER:Firefox tests/ui/`                           |
 | Firefox | Headful  | `robot -d output --variable BROWSER:Firefox --variable HEADLESS:FALSE tests/ui/` |
+
+---
+
+### Skipping Tests
+
+Robot Framework provides several ways to skip specific test cases during execution — without modifying test files.
+
+#### Option 1 — Exclude by tag (`--exclude`)
+
+Add a tag to any test case you want to skip, then exclude it at runtime.
+
+**Step 1:** Uncomment (or add) `[Tags]` in the test:
+
+```robot
+TC3 - Negative login with invalid password
+    [Tags]    skip
+    Fill The Login Form    ${valid_user_name}    ${invalid_password}
+    Verify Error Message    Your password is invalid!
+```
+
+**Step 2:** Run with `--exclude`:
+
+```powershell
+# Skip all tests tagged 'skip'
+robot -d output --exclude skip tests/ui/pta/
+
+# Skip multiple tags
+robot -d output --exclude skip --exclude wip tests/ui/pta/
+```
+
+> 💡 All test files already have `#    [Tags]    skip` commented out on each test case — simply uncomment the line(s) you want to skip.
+
+---
+
+#### Option 2 — Skip by name (`--exclude` with a custom tag)
+
+Tag individual tests with any meaningful label (e.g. `flaky`, `wip`, `manual`) and exclude that label:
+
+```robot
+TC7 - Select Option 1 from dropdown
+    [Tags]    flaky
+    ...
+```
+
+```powershell
+robot -d output --exclude flaky tests/ui/heroku/
+```
+
+---
+
+#### Option 3 — Run only specific tests (`--include` / `--test`)
+
+Instead of skipping, you can run only the tests you want:
+
+```powershell
+# Run only tests tagged 'smoke'
+robot -d output --include smoke tests/ui/
+
+# Run a single test by exact name
+robot -d output --test "TC1 - Positive login with valid credentials" tests/ui/pta/test_pta.robot
+
+# Run a specific suite only
+robot -d output --suite test_heroku tests/ui/
+```
+
+---
+
+#### Option 4 — `--skip` flag (Robot Framework 5+)
+
+Skip tests at runtime without tagging them in the file:
+
+```powershell
+# Skip by test name pattern
+robot -d output --skip "TC3*" tests/ui/pta/
+
+# Skip and continue — skipped tests are marked SKIP instead of FAIL
+robot -d output --skip "TC5 - Negative login with both fields empty" tests/ui/pta/
+```
+
+> Skipped tests appear in the report as **SKIP** (grey) — they are counted separately from PASS and FAIL.
+
+---
+
+#### Quick reference
+
+| Goal                              | Command                                                                 |
+|-----------------------------------|-------------------------------------------------------------------------|
+| Skip tests tagged `skip`          | `robot -d output --exclude skip tests/ui/`                              |
+| Skip tests tagged `flaky`         | `robot -d output --exclude flaky tests/ui/`                             |
+| Run only tests tagged `smoke`     | `robot -d output --include smoke tests/ui/`                             |
+| Run one test by name              | `robot -d output --test "TC1 - ..." tests/ui/pta/test_pta.robot`        |
+| Skip by name pattern (RF 5+)      | `robot -d output --skip "TC3*" tests/ui/pta/`                           |
 
 ---
 
@@ -408,7 +509,7 @@ This project follows the [Conventional Commits](https://www.conventionalcommits.
 | `chore`    | Routine tasks, dependency updates, tooling — no production logic change           | `chore(deps): bump robotframework 7.4.1 → 7.4.2`                |
 | `docs`     | Documentation-only changes                                                        | `docs(readme): add running tests section`                        |
 | `style`    | Formatting, whitespace — no logic change                                          | `style: reformat resource.robot keywords`                        |
-| `refactor` | Code restructured without fixing a bug or adding a feature                        | `refactor(common): extract browser setup into common/browser.robot` |
+| `refactor` | Code restructured without fixing a bug or adding a feature                        | `refactor(common): extract browser setup into common/common.robot` |
 | `test`     | Adding or updating tests                                                          | `test(heroku): add add-remove elements test`                     |
 | `ci`       | Changes to CI/CD pipeline files                                                   | `ci: add GitHub Actions Robot Framework workflow`                |
 | `build`    | Changes affecting the build system or external dependencies                       | `build: upgrade to Python 3.13`                                  |
@@ -419,7 +520,7 @@ This project follows the [Conventional Commits](https://www.conventionalcommits.
 | Scope      | Refers to                                                         |
 |------------|-------------------------------------------------------------------|
 | `deps`     | `requirements.txt` dependency changes                             |
-| `common`   | `tests/ui/common/browser.robot` shared browser keyword file       |
+| `common`   | `tests/ui/common/common.robot` shared browser keyword file       |
 | `pta`      | PTA UI test suite (`tests/ui/pta/`)                               |
 | `heroku`   | The Internet Herokuapp UI test suite (`tests/ui/heroku/`)         |
 | `demo`     | Demo/learning tests (`tests/ui/demo/`)                            |
@@ -430,13 +531,13 @@ This project follows the [Conventional Commits](https://www.conventionalcommits.
 ### Quick examples used in this project
 
 ```text
-feat(executor): add pta_ui_tests_executor.bat and heroku_ui_tests_executor.bat with output cleanup
+feat(executor): add pta_ui_tests_executor.bat, heroku_ui_tests_executor.bat and demo_ui_tests_executor.bat with output cleanup
 
 feat(demo): add test_demo.robot with login and shopping cart validation
 
 feat(common): add multi-browser support with headless/headful mode for Chrome, Edge and Firefox
 
-refactor(common): centralise browser setup into tests/ui/common/browser.robot
+refactor(common): centralise browser setup into tests/ui/common/common.robot
 
 feat(pta): add logout and empty-field negative login test cases
 
@@ -473,28 +574,77 @@ The configuration file lives at:
     },
     "playwright": {
       "command": "npx",
-      "args": ["@playwright/mcp@latest"]
+      "args": [
+        "@playwright/mcp@latest"
+      ]
     },
     "selenium": {
       "command": "npx",
-      "args": ["-y", "@angiejones/mcp-selenium"]
+      "args": [
+        "-y",
+        "@angiejones/mcp-selenium"
+      ]
     },
     "filesystem": {
       "command": "npx",
       "args": [
         "-y",
         "@modelcontextprotocol/server-filesystem",
-        "C:\\Users\\<your-username>\\files_claude"
+        "C:\\Users\\Vishvambruth_Javagal\\files_claude"
       ]
+    },
+    "excel": {
+      "command": "cmd",
+      "args": [
+        "/c",
+        "npx",
+        "--yes",
+        "@negokaz/excel-mcp-server"
+      ],
+      "env": {
+        "EXCEL_MCP_PAGING_CELLS_LIMIT": "4000"
+      }
     },
     "rest-api": {
       "command": "node",
       "args": [
-        "C:\\Users\\<your-username>\\AppData\\Roaming\\npm\\node_modules\\dkmaker-mcp-rest-api\\build\\index.js"
+        "C:\\Users\\Vishvambruth_Javagal\\AppData\\Roaming\\npm\\node_modules\\dkmaker-mcp-rest-api\\build\\index.js"
       ],
       "env": {
         "REST_BASE_URL": "https://rahulshettyacademy.com/",
         "HEADER_Accept": "application/json"
+      }
+    },
+    "mysql": {
+      "command": "C:\\Python\\3.13.7\\Scripts\\uv.exe",
+      "args": [
+        "--directory",
+        "C:\\Python\\3.13.7\\Lib\\site-packages",
+        "run",
+        "mysql_mcp_server"
+      ],
+      "env": {
+        "MYSQL_HOST": "localhost",
+        "MYSQL_PORT": "3306",
+        "MYSQL_USER": "root",
+        "MYSQL_PASSWORD": "root",
+        "MYSQL_DATABASE": "rahulshettyacademy"
+      }
+    },
+    "word-document-server": {
+      "command": "uvx",
+      "args": ["--from", "office-word-mcp-server", "word_mcp_server"]
+    },
+    "mcp-atlassian": {
+      "command": "uvx",
+      "args": ["mcp-atlassian"],
+      "env": {
+        "JIRA_URL": "https://your-domain.atlassian.net",
+        "JIRA_USERNAME": "your-email@example.com",
+        "JIRA_API_TOKEN": "your_jira_api_token_here",
+        "CONFLUENCE_URL": "https://your-company.atlassian.net/wiki",
+        "CONFLUENCE_USERNAME": "your.email@company.com",
+        "CONFLUENCE_API_TOKEN": "your_api_token"
       }
     }
   }
