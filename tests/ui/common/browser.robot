@@ -1,9 +1,16 @@
 *** Settings ***
-Documentation    Shared browser launch and teardown keywords.
+Documentation    Shared browser launch, teardown keywords, and common variables.
 ...
 ...              Supports Chrome, Edge and Firefox in both headless
 ...              and headful modes, driven by the BROWSER and HEADLESS
 ...              variables (defaults: Chrome / TRUE).
+...
+...              REGION controls the target environment (DEV, QA, STAGE, PROD).
+...              Defaults to QA.
+...
+...              SeleniumLibrary is imported here with screenshot_root_directory=EMBED
+...              so that a screenshot is automatically captured and embedded into
+...              log.html on any test failure — no extra keywords needed.
 Library          SeleniumLibrary    run_on_failure=Capture Page Screenshot    screenshot_root_directory=EMBED
 Library          Collections
 
@@ -50,4 +57,3 @@ Open Browser For URL
 
 Close Browser Session
     Close All Browsers
-

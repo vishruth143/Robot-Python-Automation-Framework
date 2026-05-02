@@ -1,6 +1,13 @@
 *** Settings ***
-Documentation    A resource file with reusable keywords and variables for
-...              The Internet Herokuapp (https://the-internet.herokuapp.com/)
+Documentation    Resource file for The Internet Herokuapp UI suite.
+...              https://the-internet.herokuapp.com/
+...
+...              Contains suite-specific variables (APP_URLS, credentials, locators)
+...              and the browser setup keyword for the Herokuapp pages.
+...              Covers: Form Authentication, Checkboxes, Dropdown, Add/Remove Elements.
+...
+...              Browser, headless mode and target environment are controlled via
+...              BROWSER, HEADLESS and REGION — inherited from common/browser.robot.
 Resource         ../common/browser.robot
 
 *** Variables ***

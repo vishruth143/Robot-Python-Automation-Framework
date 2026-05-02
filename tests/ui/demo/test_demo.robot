@@ -1,19 +1,28 @@
 *** Settings ***
 Documentation    Validate the login form
+Test Tags        DEMO
 Test Setup       Open the browser with the login page practice url
 Test Teardown    Close Browser Session
 Resource    resource.robot
 
 *** Test Cases ***
 TC1 - Validate un-successful login
+#    [Tags]    skip
     Fill The Login Form    ${invalid_user_name}    ${invalid_password}
     Wait Until Element Is Visible    ${login_error_message_txt}    timeout=10s
     Verify Error Message Is Correct
 
 TC2 - Validate cards display in the shopping page
+#    [Tags]    skip
     Fill The Login Form    ${valid_user_name}    ${valid_password}
     Wait Until Element Is Visible    ${checkout_btn}    timeout=10s
     Verify card titles in the shop page
+    
+TC3 - Select the card
+#    [Tags]    skip
+    Fill The Login Form    ${valid_user_name}    ${valid_password}
+    Wait Until Element Is Visible    ${checkout_btn}    timeout=10s
+    Select the card
 
 *** Keywords ***
 Fill The Login Form
@@ -36,3 +45,16 @@ Verify card titles in the shop page
         Append To List    ${actual_list}    ${element.text}
     END
     Lists Should Be Equal    ${actual_list}    ${expected_list}
+
+Select the card
+    ${elements}=    Get WebElements    ${card_titles}
+    ${index}=    Set Variable    1
+    FOR    ${element}    IN    @{elements}
+        ${text}=    Evaluate    $element.text.strip().lower()
+        ${target}=    Evaluate    '${card_name}'.strip().lower()
+        IF    '${text}' == '${target}'
+            Exit For Loop
+        END
+        ${index}=    Evaluate    ${index} + 1
+    END
+    Click Button    xpath=(//button[contains(text(),'Add')])[${index}]

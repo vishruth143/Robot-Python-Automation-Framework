@@ -1,9 +1,12 @@
 *** Settings ***
-Documentation    A resource file with reusable keywords and variables.
+Documentation    Resource file for the Demo UI suite (rahulshettyacademy.com).
 ...
-...              The system specific keywords created here form our own
-...              Domain specific language. They utilize keywords provided
-...              by the imported SeleniumLibrary
+...              Contains suite-specific variables (APP_URLS, credentials, locators)
+...              and the browser setup keyword for the login page practice site.
+...              Covers: Login validation, Shopping cart card verification.
+...
+...              Browser, headless mode and target environment are controlled via
+...              BROWSER, HEADLESS and REGION — inherited from common/browser.robot.
 Resource         ../common/browser.robot
 
 *** Variables ***
@@ -17,6 +20,7 @@ ${valid_user_name}            rahulshettyacademy
 ${valid_password}             Learning@830$3mK2
 ${invalid_user_name}          test
 ${invalid_password}           test
+${card_name}                  iphone X
 
 ${login_error_message_txt}    css:.alert-danger
 ${checkout_btn}               css:.nav-link

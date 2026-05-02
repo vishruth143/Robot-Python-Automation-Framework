@@ -1,30 +1,36 @@
 *** Settings ***
 Documentation    Validate the Practice Test Automation login page
 ...              https://practicetestautomation.com/practice-test-login/
+Test Tags        PTA
 Test Setup       Open the browser with the PTA website url
 Test Teardown    Close Browser Session
 Resource         resource.robot
 
 *** Test Cases ***
 TC1 - Positive login with valid credentials
+#    [Tags]    skip
     Fill The Login Form    ${valid_user_name}    ${valid_password}
     Verify Successful Login
 
 TC2 - Negative login with invalid username
+#    [Tags]    skip
     Fill The Login Form    ${invalid_user_name}    ${valid_password}
     Verify Error Message    Your username is invalid!
 
 TC3 - Negative login with invalid password
+#    [Tags]    skip
     Fill The Login Form    ${valid_user_name}    ${invalid_password}
     Verify Error Message    Your password is invalid!
 
 TC4 - Verify logout after successful login
+#    [Tags]    skip
     Fill The Login Form    ${valid_user_name}    ${valid_password}
     Verify Successful Login
     Click Element    ${logout_btn}
     Wait Until Element Is Visible    ${submit_btn}    timeout=10s
 
 TC5 - Negative login with both fields empty
+#    [Tags]    skip
     Click Element    ${submit_btn}
     Wait Until Element Is Visible    ${error_message_txt}    timeout=10s
 

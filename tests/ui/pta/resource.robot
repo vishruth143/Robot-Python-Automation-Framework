@@ -1,9 +1,11 @@
 *** Settings ***
-Documentation    A resource file with reusable keywords and variables.
+Documentation    Resource file for the Practice Test Automation (PTA) UI suite.
 ...
-...              The system specific keywords created here form our own
-...              Domain specific language. They utilize keywords provided
-...              by the imported SeleniumLibrary
+...              Contains suite-specific variables (APP_URLS, credentials, locators)
+...              and the browser setup keyword for the PTA login page.
+...
+...              Browser, headless mode and target environment are controlled via
+...              BROWSER, HEADLESS and REGION — inherited from common/browser.robot.
 Resource         ../common/browser.robot
 
 *** Variables ***
