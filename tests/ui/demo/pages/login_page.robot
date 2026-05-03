@@ -6,25 +6,31 @@ Documentation    Page Object for the Demo Login Page (rahulshettyacademy.com).
 Resource         ../resource.robot
 
 *** Variables ***
-# Login page locators
-${username_field}              id=username
-${password_field}              id=password
-${terms_checkbox}              id=terms
-${sign_in_btn}                 id=signInBtn
-${login_error_message_txt}     css:.alert-danger
+# --- Text Fields ---
+${username_txt}              id=username
+${password_pwd}              id=password
+
+# --- Checkboxes ---
+${terms_chk}                 id=terms
+
+# --- Buttons ---
+${sign_in_btn}               id=signInBtn
+
+# --- Labels ---
+${login_error_lbl}           css:.alert-danger
 
 *** Keywords ***
 Fill The Login Form
     [Documentation]    Enters credentials, accepts terms and clicks Sign In.
     [Arguments]    ${user_name}    ${password}
-    Input Text        ${username_field}    ${user_name}
-    Input Password    ${password_field}    ${password}
-    Select Checkbox   ${terms_checkbox}
+    Input Text        ${username_txt}    ${user_name}
+    Input Password    ${password_pwd}    ${password}
+    Select Checkbox   ${terms_chk}
     Click Button      ${sign_in_btn}
 
 Verify Login Error Message
     [Documentation]    Waits for the error alert and asserts its exact text.
     [Arguments]    ${expected_message}=Incorrect username/password.
-    Wait Until Element Is Visible    ${login_error_message_txt}    timeout=${DEFAULT_TIMEOUT}s
-    ${result}=    Get Text    ${login_error_message_txt}
+    Wait Until Element Is Visible    ${login_error_lbl}    timeout=${DEFAULT_TIMEOUT}s
+    ${result}=    Get Text    ${login_error_lbl}
     Should Be Equal As Strings    ${result}    ${expected_message}

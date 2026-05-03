@@ -6,7 +6,7 @@ Documentation    Page Object for the Herokuapp Add/Remove Elements Page.
 Resource         ../resource.robot
 
 *** Variables ***
-# Add / Remove Elements page locators
+# --- Buttons ---
 ${add_element_btn}     css:button[onclick='addElement()']
 ${delete_btn}          css:button.added-manually
 

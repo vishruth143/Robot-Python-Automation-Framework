@@ -6,18 +6,22 @@ Documentation    Page Object for the PTA Login Page.
 Resource         ../resource.robot
 
 *** Variables ***
-# Login page locators
-${username_field}             id=username
-${password_field}             id=password
+# --- Text Fields ---
+${username_txt}               id=username
+${password_pwd}               id=password
+
+# --- Buttons ---
 ${submit_btn}                 //button[text()='Submit']
-${error_message_txt}          id=error
+
+# --- Labels ---
+${error_message_lbl}          id=error
 
 *** Keywords ***
 Fill The Login Form
     [Documentation]    Enters credentials and clicks Submit.
     [Arguments]    ${user_name}    ${password}
-    Input Text        ${username_field}    ${user_name}
-    Input Password    ${password_field}    ${password}
+    Input Text        ${username_txt}    ${user_name}
+    Input Password    ${password_pwd}    ${password}
     Click Element     ${submit_btn}
 
 Submit Empty Login Form
@@ -27,13 +31,13 @@ Submit Empty Login Form
 Verify Error Message
     [Documentation]    Waits for the error message and asserts its text.
     [Arguments]    ${expected_message}
-    Wait Until Element Is Visible    ${error_message_txt}    timeout=${DEFAULT_TIMEOUT}s
-    ${actual_msg}=    Get Text    ${error_message_txt}
+    Wait Until Element Is Visible    ${error_message_lbl}    timeout=${DEFAULT_TIMEOUT}s
+    ${actual_msg}=    Get Text    ${error_message_lbl}
     Should Be Equal As Strings    ${actual_msg}    ${expected_message}
 
 Verify Error Message Is Visible
     [Documentation]    Waits for the error message element to be visible (without asserting text).
-    Wait Until Element Is Visible    ${error_message_txt}    timeout=${DEFAULT_TIMEOUT}s
+    Wait Until Element Is Visible    ${error_message_lbl}    timeout=${DEFAULT_TIMEOUT}s
 
 Verify Redirected To Login Page
     [Documentation]    Confirms the user has been returned to the login page after logout.

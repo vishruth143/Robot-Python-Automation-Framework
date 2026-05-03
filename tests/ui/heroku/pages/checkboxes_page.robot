@@ -6,19 +6,19 @@ Documentation    Page Object for the Herokuapp Checkboxes Page.
 Resource         ../resource.robot
 
 *** Variables ***
-# Checkboxes page locators
-${checkbox_1}     css:form#checkboxes input:nth-of-type(1)
-${checkbox_2}     css:form#checkboxes input:nth-of-type(2)
+# --- Checkboxes ---
+${checkbox_1_chk}     css:form#checkboxes input:nth-of-type(1)
+${checkbox_2_chk}     css:form#checkboxes input:nth-of-type(2)
 
 *** Keywords ***
 Check Checkbox 1 And Verify Selected
     [Documentation]    Asserts checkbox 1 is unchecked, checks it, then verifies it is selected.
-    Checkbox Should Not Be Selected    ${checkbox_1}
-    Select Checkbox                    ${checkbox_1}
-    Checkbox Should Be Selected        ${checkbox_1}
+    Checkbox Should Not Be Selected    ${checkbox_1_chk}
+    Select Checkbox                    ${checkbox_1_chk}
+    Checkbox Should Be Selected        ${checkbox_1_chk}
 
 Uncheck Checkbox 2 And Verify Deselected
     [Documentation]    Asserts checkbox 2 is checked, unchecks it, then verifies it is deselected.
-    Checkbox Should Be Selected        ${checkbox_2}
-    Unselect Checkbox                  ${checkbox_2}
-    Checkbox Should Not Be Selected    ${checkbox_2}
+    Checkbox Should Be Selected        ${checkbox_2_chk}
+    Unselect Checkbox                  ${checkbox_2_chk}
+    Checkbox Should Not Be Selected    ${checkbox_2_chk}

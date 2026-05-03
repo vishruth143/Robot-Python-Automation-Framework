@@ -6,8 +6,10 @@ Documentation    Page Object for the Herokuapp Dropdown Page.
 Resource         ../resource.robot
 
 *** Variables ***
-# Dropdown page locators
-${dropdown}               id=dropdown
+# --- Dropdowns ---
+${options_ddl}            id=dropdown
+
+# --- Test Data ---
 ${dropdown_option_1}      Option 1
 ${dropdown_option_2}      Option 2
 
@@ -15,6 +17,6 @@ ${dropdown_option_2}      Option 2
 Select Dropdown Option And Verify
     [Documentation]    Selects a dropdown option by label and asserts it is selected.
     [Arguments]    ${option_label}
-    Select From List By Label      ${dropdown}    ${option_label}
-    ${selected}=    Get Selected List Label    ${dropdown}
+    Select From List By Label      ${options_ddl}    ${option_label}
+    ${selected}=    Get Selected List Label    ${options_ddl}
     Should Be Equal As Strings     ${selected}    ${option_label}
