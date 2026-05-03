@@ -29,18 +29,22 @@ Open Browser For URL
     ${browser_lower}=    Evaluate    '${BROWSER}'.lower()
     IF    '${browser_lower}' == 'chrome'
         ${options}=    Evaluate    sys.modules['selenium.webdriver'].ChromeOptions()    sys
+        Evaluate    $options.add_argument('--no-sandbox')    sys
+        Evaluate    $options.add_argument('--disable-dev-shm-usage')    sys
+        Evaluate    $options.add_argument('--disable-gpu')    sys
+        Evaluate    $options.add_argument('--window-size=1920,1080')    sys
         IF    '${HEADLESS}' == 'TRUE'
             Evaluate    $options.add_argument('--headless=new')    sys
-            Evaluate    $options.add_argument('--disable-gpu')    sys
-            Evaluate    $options.add_argument('--window-size=1920,1080')    sys
         END
         Open Browser    ${url}    Chrome    options=${options}
     ELSE IF    '${browser_lower}' == 'edge'
         ${options}=    Evaluate    sys.modules['selenium.webdriver'].EdgeOptions()    sys
+        Evaluate    $options.add_argument('--no-sandbox')    sys
+        Evaluate    $options.add_argument('--disable-dev-shm-usage')    sys
+        Evaluate    $options.add_argument('--disable-gpu')    sys
+        Evaluate    $options.add_argument('--window-size=1920,1080')    sys
         IF    '${HEADLESS}' == 'TRUE'
             Evaluate    $options.add_argument('--headless=new')    sys
-            Evaluate    $options.add_argument('--disable-gpu')    sys
-            Evaluate    $options.add_argument('--window-size=1920,1080')    sys
         END
         Open Browser    ${url}    Edge    options=${options}
     ELSE IF    '${browser_lower}' == 'firefox'
