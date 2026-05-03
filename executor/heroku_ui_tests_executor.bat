@@ -10,4 +10,4 @@ if exist output (
     rmdir /s /q output
 )
 
-robot -d output --variable BROWSER:%BROWSER% --variable HEADLESS:%HEADLESS% --variable REGION:%REGION% tests/ui/heroku/
+robot -d output --variablefile config/config_loader.py:heroku:%REGION% --variable BROWSER:%BROWSER% --variable HEADLESS:%HEADLESS% tests/ui/heroku/

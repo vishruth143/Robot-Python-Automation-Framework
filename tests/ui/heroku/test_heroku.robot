@@ -4,6 +4,10 @@ Documentation    Test suite for The Internet Herokuapp
 Test Tags        HEROKU
 Test Teardown    Close Browser Session
 Resource         resource.robot
+Resource         pages/login_page.robot
+Resource         pages/checkboxes_page.robot
+Resource         pages/dropdown_page.robot
+Resource         pages/add_remove_page.robot
 
 *** Test Cases ***
 # ── Form Authentication ──────────────────────────────────────────────────────
@@ -11,103 +15,64 @@ Resource         resource.robot
 TC1 - Successful login with valid credentials
 #    [Tags]    skip
     [Setup]    Open Herokuapp Page    ${login_url}
-    Login With    ${valid_user_name}    ${valid_password}
-    Wait Until Element Is Visible    ${flash_success}    timeout=10s
-    Element Text Should Contain      ${flash_success}    You logged into a secure area!
-    Element Should Be Visible        ${logout_btn}
-    Location Should Contain          /secure
+    Login With    ${VALID_USERNAME}    ${VALID_PASSWORD}
+    Verify Successful Login
 
 TC2 - Unsuccessful login with invalid username
 #    [Tags]    skip
     [Setup]    Open Herokuapp Page    ${login_url}
-    Login With    ${invalid_user_name}    ${valid_password}
-    Wait Until Element Is Visible    ${flash_error}    timeout=10s
-    Element Text Should Contain      ${flash_error}    Your username is invalid!
+    Login With    ${INVALID_USERNAME}    ${VALID_PASSWORD}
+    Verify Login Error    Your username is invalid!
 
 TC3 - Unsuccessful login with invalid password
 #    [Tags]    skip
     [Setup]    Open Herokuapp Page    ${login_url}
-    Login With    ${valid_user_name}    ${invalid_password}
-    Wait Until Element Is Visible    ${flash_error}    timeout=10s
-    Element Text Should Contain      ${flash_error}    Your password is invalid!
+    Login With    ${VALID_USERNAME}    ${INVALID_PASSWORD}
+    Verify Login Error    Your password is invalid!
 
 TC4 - Logout after successful login
 #    [Tags]    skip
     [Setup]    Open Herokuapp Page    ${login_url}
-    Login With    ${valid_user_name}    ${valid_password}
-    Wait Until Element Is Visible    ${logout_btn}    timeout=10s
-    ${href}=    Get Element Attribute    ${logout_btn}    href
-    Go To    ${href}
-    Wait Until Element Is Visible    ${username_field}    timeout=15s
-    Location Should Contain          /login
+    Login With    ${VALID_USERNAME}    ${VALID_PASSWORD}
+    Logout And Verify Redirected To Login
 
 # ── Checkboxes ───────────────────────────────────────────────────────────────
 
 TC5 - Check checkbox 1 and verify it is selected
 #    [Tags]    skip
     [Setup]    Open Herokuapp Page    ${checkboxes_url}
-    Checkbox Should Not Be Selected    ${checkbox_1}
-    Select Checkbox                    ${checkbox_1}
-    Checkbox Should Be Selected        ${checkbox_1}
+    Check Checkbox 1 And Verify Selected
 
 TC6 - Uncheck checkbox 2 and verify it is deselected
 #    [Tags]    skip
     [Setup]    Open Herokuapp Page    ${checkboxes_url}
-    Checkbox Should Be Selected        ${checkbox_2}
-    Unselect Checkbox                  ${checkbox_2}
-    Checkbox Should Not Be Selected    ${checkbox_2}
+    Uncheck Checkbox 2 And Verify Deselected
 
 # ── Dropdown ─────────────────────────────────────────────────────────────────
 
 TC7 - Select Option 1 from dropdown
 #    [Tags]    skip
     [Setup]    Open Herokuapp Page    ${dropdown_url}
-    Select From List By Label         ${dropdown}    ${dropdown_option_1}
-    ${selected}=    Get Selected List Label    ${dropdown}
-    Should Be Equal As Strings        ${selected}    ${dropdown_option_1}
+    Select Dropdown Option And Verify    ${dropdown_option_1}
 
 TC8 - Select Option 2 from dropdown
 #    [Tags]    skip
     [Setup]    Open Herokuapp Page    ${dropdown_url}
-    Select From List By Label         ${dropdown}    ${dropdown_option_2}
-    ${selected}=    Get Selected List Label    ${dropdown}
-    Should Be Equal As Strings        ${selected}    ${dropdown_option_2}
+    Select Dropdown Option And Verify    ${dropdown_option_2}
 
 # ── Add / Remove Elements ────────────────────────────────────────────────────
 
 TC9 - Add an element and verify it appears
 #    [Tags]    skip
     [Setup]    Open Herokuapp Page    ${add_remove_url}
-    Click Button                      ${add_element_btn}
-    Wait Until Element Is Visible     ${delete_btn}    timeout=10s
-    ${count}=    Get Element Count    ${delete_btn}
-    Should Be Equal As Integers       ${count}    1
+    Add Element And Verify Count
 
 TC10 - Add multiple elements and verify count
 #    [Tags]    skip
     [Setup]    Open Herokuapp Page    ${add_remove_url}
-    Click Button    ${add_element_btn}
-    Click Button    ${add_element_btn}
-    Click Button    ${add_element_btn}
-    ${count}=    Get Element Count    ${delete_btn}
-    Should Be Equal As Integers       ${count}    3
+    Add Multiple Elements And Verify Count    3
 
 TC11 - Add then delete an element
 #    [Tags]    skip
     [Setup]    Open Herokuapp Page    ${add_remove_url}
-    Click Button                      ${add_element_btn}
-    Wait Until Element Is Visible     ${delete_btn}    timeout=10s
-    Click Button                      ${delete_btn}
-    Element Should Not Be Visible     ${delete_btn}
-
-*** Keywords ***
-Login With
-    [Arguments]    ${user_name}    ${password}
-    Input Text        ${username_field}    ${user_name}
-    Input Password    ${password_field}    ${password}
-    Click Element     ${login_btn}
-
-Element Text Should Contain
-    [Arguments]    ${locator}    ${expected_text}
-    ${actual}=    Get Text    ${locator}
-    Should Contain    ${actual}    ${expected_text}
+    Add Element Then Delete And Verify Gone

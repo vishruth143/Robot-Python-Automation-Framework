@@ -1,60 +1,26 @@
 *** Settings ***
-Documentation    Validate the login form
+Documentation    Validate the login form and shopping page (rahulshettyacademy.com)
 Test Tags        DEMO
 Test Setup       Open the browser with the login page practice url
 Test Teardown    Close Browser Session
-Resource    resource.robot
+Resource         resource.robot
+Resource         pages/login_page.robot
+Resource         pages/shop_page.robot
 
 *** Test Cases ***
 TC1 - Validate un-successful login
 #    [Tags]    skip
-    Fill The Login Form    ${invalid_user_name}    ${invalid_password}
-    Wait Until Element Is Visible    ${login_error_message_txt}    timeout=10s
-    Verify Error Message Is Correct
+    Fill The Login Form    ${INVALID_USERNAME}    ${INVALID_PASSWORD}
+    Verify Login Error Message
 
 TC2 - Validate cards display in the shopping page
 #    [Tags]    skip
-    Fill The Login Form    ${valid_user_name}    ${valid_password}
-    Wait Until Element Is Visible    ${checkout_btn}    timeout=10s
-    Verify card titles in the shop page
-    
+    Fill The Login Form    ${VALID_USERNAME}    ${VALID_PASSWORD}
+    Verify Shop Page Is Loaded
+    Verify Card Titles In The Shop Page
+
 TC3 - Select the card
 #    [Tags]    skip
-    Fill The Login Form    ${valid_user_name}    ${valid_password}
-    Wait Until Element Is Visible    ${checkout_btn}    timeout=10s
-    Select the card
-
-*** Keywords ***
-Fill The Login Form
-    [Arguments]    ${user_name}    ${password}
-    Input Text        id=username    ${user_name}
-    Input Password    id=password    ${password}
-    Select Checkbox   id=terms
-    Click Button      id=signInBtn
-
-Verify Error Message Is Correct
-    ${result}=    Get Text    ${login_error_message_txt}
-    Should Be Equal As Strings    ${result}    Incorrect username/password.
-
-Verify card titles in the shop page
-    @{expected_list}=    Create List    iphone X    Samsung Note 8    Nokia Edge    Blackberry
-    ${elements}=    Get WebElements    ${card_titles}
-    @{actual_list}=    Create List
-
-    FOR    ${element}    IN    @{elements}
-        Append To List    ${actual_list}    ${element.text}
-    END
-    Lists Should Be Equal    ${actual_list}    ${expected_list}
-
-Select the card
-    ${elements}=    Get WebElements    ${card_titles}
-    ${index}=    Set Variable    1
-    FOR    ${element}    IN    @{elements}
-        ${text}=    Evaluate    $element.text.strip().lower()
-        ${target}=    Evaluate    '${card_name}'.strip().lower()
-        IF    '${text}' == '${target}'
-            Exit For Loop
-        END
-        ${index}=    Evaluate    ${index} + 1
-    END
-    Click Button    xpath=(//button[contains(text(),'Add')])[${index}]
+    Fill The Login Form    ${VALID_USERNAME}    ${VALID_PASSWORD}
+    Verify Shop Page Is Loaded
+    Select Card By Name

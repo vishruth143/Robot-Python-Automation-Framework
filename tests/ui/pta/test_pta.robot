@@ -5,50 +5,33 @@ Test Tags        PTA
 Test Setup       Open the browser with the PTA website url
 Test Teardown    Close Browser Session
 Resource         resource.robot
+Resource         pages/login_page.robot
+Resource         pages/dashboard_page.robot
 
 *** Test Cases ***
 TC1 - Positive login with valid credentials
 #    [Tags]    skip
-    Fill The Login Form    ${valid_user_name}    ${valid_password}
+    Fill The Login Form    ${VALID_USERNAME}    ${VALID_PASSWORD}
     Verify Successful Login
 
 TC2 - Negative login with invalid username
 #    [Tags]    skip
-    Fill The Login Form    ${invalid_user_name}    ${valid_password}
+    Fill The Login Form    ${INVALID_USERNAME}    ${VALID_PASSWORD}
     Verify Error Message    Your username is invalid!
 
 TC3 - Negative login with invalid password
 #    [Tags]    skip
-    Fill The Login Form    ${valid_user_name}    ${invalid_password}
+    Fill The Login Form    ${VALID_USERNAME}    ${INVALID_PASSWORD}
     Verify Error Message    Your password is invalid!
 
 TC4 - Verify logout after successful login
 #    [Tags]    skip
-    Fill The Login Form    ${valid_user_name}    ${valid_password}
+    Fill The Login Form    ${VALID_USERNAME}    ${VALID_PASSWORD}
     Verify Successful Login
-    Click Element    ${logout_btn}
-    Wait Until Element Is Visible    ${submit_btn}    timeout=10s
+    Click Logout Button
+    Verify Error Message Is Visible
 
 TC5 - Negative login with both fields empty
 #    [Tags]    skip
-    Click Element    ${submit_btn}
-    Wait Until Element Is Visible    ${error_message_txt}    timeout=10s
-
-*** Keywords ***
-Fill The Login Form
-    [Arguments]    ${user_name}    ${password}
-    Input Text        ${username_field}    ${user_name}
-    Input Password    ${password_field}    ${password}
-    Click Element     ${submit_btn}
-
-Verify Successful Login
-    Wait Until Element Is Visible    ${success_heading}    timeout=10s
-    Element Should Be Visible        ${success_message}
-    Element Should Be Visible        ${logout_btn}
-    Location Should Contain          logged-in-successfully
-
-Verify Error Message
-    [Arguments]    ${expected_message}
-    Wait Until Element Is Visible    ${error_message_txt}    timeout=10s
-    ${actual_msg}=    Get Text    ${error_message_txt}
-    Should Be Equal As Strings    ${actual_msg}    ${expected_message}
+    Submit Empty Login Form
+    Verify Error Message Is Visible

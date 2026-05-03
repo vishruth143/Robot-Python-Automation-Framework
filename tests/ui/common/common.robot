@@ -15,9 +15,10 @@ Library          SeleniumLibrary    run_on_failure=Capture Page Screenshot    sc
 Library          Collections
 
 *** Variables ***
-${REGION}     %{REGION=QA}
-${BROWSER}    %{BROWSER=Chrome}
-${HEADLESS}   %{HEADLESS=TRUE}
+${REGION}              %{REGION=QA}
+${BROWSER}             %{BROWSER=Chrome}
+${HEADLESS}            %{HEADLESS=TRUE}
+${DEFAULT_TIMEOUT}     10
 
 *** Keywords ***
 Open Browser For URL

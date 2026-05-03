@@ -1,0 +1,12 @@
+# PTA UI — Environment Configuration
+# Base URL for the Practice Test Automation login page per region.
+# All regions point to the same public site; update when a real DEV/STAGE exists.
+
+DEV:
+  url: https://practicetestautomation.com/practice-test-login/
+QA:
+  url: https://practicetestautomation.com/practice-test-login/
+STAGE:
+  url: https://practicetestautomation.com/practice-test-login/
+PROD:
+  url: https://practicetestautomation.com/practice-test-login/

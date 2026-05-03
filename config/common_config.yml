@@ -1,0 +1,7 @@
+# Common framework configuration
+# These are the default values — all can be overridden at runtime via --variable or environment variables.
+
+browser: Chrome
+headless: true
+region: QA
+default_timeout: 10
