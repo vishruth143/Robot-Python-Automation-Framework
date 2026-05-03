@@ -34,9 +34,6 @@ ${VALID_PASSWORD}       %{VALID_PASSWORD=Learning@830$3mK2}
 ${INVALID_USERNAME}     %{INVALID_USERNAME=test}
 ${INVALID_PASSWORD}     %{INVALID_PASSWORD=test}
 
-# Test data
-${CARD_NAME}            iphone X
-
 *** Keywords ***
 Open the browser with the login page practice url
     [Documentation]    Resolves APP_URL from DEMO_URLS using REGION, then opens the browser.

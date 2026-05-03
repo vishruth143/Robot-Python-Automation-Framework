@@ -7,7 +7,7 @@ Resource         ../resource.robot
 
 *** Variables ***
 # --- Links ---
-${checkout_lnk}      css:.nav-link
+${checkout_lnk}      css:a.nav-link.btn-primary
 
 # --- Labels ---
 ${card_titles_lbl}   css:.card-title a
@@ -28,15 +28,24 @@ Verify Card Titles In The Shop Page
     Lists Should Be Equal    ${actual_list}    ${expected_list}
 
 Select Card By Name
-    [Documentation]    Finds the card matching ${CARD_NAME} and clicks its Add button.
+    [Documentation]    Finds the card matching the given name and clicks its Add button.
+    [Arguments]    ${card_name}
     ${elements}=    Get WebElements    ${card_titles_lbl}
     ${index}=       Set Variable    1
     FOR    ${element}    IN    @{elements}
         ${text}=      Evaluate    $element.text.strip().lower()
-        ${target}=    Evaluate    '${CARD_NAME}'.strip().lower()
+        ${target}=    Evaluate    '${card_name}'.strip().lower()
         IF    '${text}' == '${target}'
             BREAK
         END
         ${index}=    Evaluate    ${index} + 1
     END
-    Click Button    xpath=(//button[contains(text(),'Add')])[${index}]
+    ${btn}=    Get WebElement    xpath=(//button[contains(text(),'Add')])[${index}]
+    Execute JavaScript    arguments[0].click();    ARGUMENTS    ${btn}
+    Sleep    1s
+
+Verify Checkout Count
+    [Documentation]    Asserts the checkout button displays the expected item count.
+    [Arguments]    ${expected_count}
+    ${text}=    Get Text    ${checkout_lnk}
+    Should Contain    ${text}    Checkout ( ${expected_count} )

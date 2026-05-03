@@ -19,8 +19,12 @@ TC2 - Validate cards display in the shopping page
     Verify Shop Page Is Loaded
     Verify Card Titles In The Shop Page
 
-TC3 - Select the card
+TC3 - Select the card by name
 #    [Tags]    skip
     Fill The Login Form    ${VALID_USERNAME}    ${VALID_PASSWORD}
     Verify Shop Page Is Loaded
-    Select Card By Name
+    @{cards}=    Create List    iphone X    Samsung Note 8    Nokia Edge    Blackberry
+    FOR    ${card}    IN    @{cards}
+        Select Card By Name    ${card}
+    END
+    Verify Checkout Count    4

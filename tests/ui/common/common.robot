@@ -23,7 +23,7 @@ Library          Collections
 *** Variables ***
 ${REGION}              %{REGION=QA}
 ${BROWSER}             %{BROWSER=CHROME}
-${HEADLESS}            %{HEADLESS=TRUE}
+${HEADLESS}            %{HEADLESS=FALSE}
 ${DEFAULT_TIMEOUT}     10
 
 *** Keywords ***
