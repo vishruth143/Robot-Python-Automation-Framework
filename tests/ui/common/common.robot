@@ -8,6 +8,12 @@ Documentation    Shared browser launch, teardown keywords, and common variables.
 ...              REGION controls the target environment (DEV, QA, STAGE, PROD).
 ...              Defaults to QA.
 ...
+...              Chrome flags applied:
+...                --headless=new          (headless mode only)
+...                --no-sandbox            (required in Docker/CI containers)
+...                --disable-dev-shm-usage (prevents /dev/shm OOM crashes)
+...                --window-size=1920,1080 (always, for consistent resolution)
+...
 ...              SeleniumLibrary is imported here with screenshot_root_directory=EMBED
 ...              so that a screenshot is automatically captured and embedded into
 ...              log.html on any test failure — no extra keywords needed.
@@ -16,45 +22,30 @@ Library          Collections
 
 *** Variables ***
 ${REGION}              %{REGION=QA}
-${BROWSER}             %{BROWSER=Chrome}
+${BROWSER}             %{BROWSER=CHROME}
 ${HEADLESS}            %{HEADLESS=TRUE}
 ${DEFAULT_TIMEOUT}     10
-${CHROME_BINARY}       %{CHROME_BINARY=}
-${CHROMEDRIVER_PATH}   %{CHROMEDRIVER_PATH=}
 
 *** Keywords ***
 Open Browser For URL
     [Documentation]    Launch the configured browser and navigate to ${url}.
-    ...                Reads BROWSER and HEADLESS variables; applies the
-    ...                correct driver options automatically.
-    ...                CHROME_BINARY and CHROMEDRIVER_PATH can be set for CI
-    ...                environments to point to specific browser/driver installs.
     [Arguments]    ${url}
     ${browser_lower}=    Evaluate    '${BROWSER}'.lower()
     IF    '${browser_lower}' == 'chrome'
         ${options}=    Evaluate    sys.modules['selenium.webdriver'].ChromeOptions()    sys
+        # Always-on flags — required in CI/Docker containers
         Evaluate    $options.add_argument('--no-sandbox')    sys
         Evaluate    $options.add_argument('--disable-dev-shm-usage')    sys
-        Evaluate    $options.add_argument('--disable-gpu')    sys
         Evaluate    $options.add_argument('--window-size=1920,1080')    sys
-        Evaluate    $options.add_argument('--remote-debugging-port=0')    sys
+        # Headless-only flag — mirrors "if headless: add_argument('--headless=new')"
         IF    '${HEADLESS}' == 'TRUE'
             Evaluate    $options.add_argument('--headless=new')    sys
         END
-        IF    '${CHROME_BINARY}' != ''
-            Evaluate    setattr($options, 'binary_location', '${CHROME_BINARY}')    sys
-        END
-        IF    '${CHROMEDRIVER_PATH}' != ''
-            ${service}=    Evaluate    sys.modules['selenium.webdriver.chrome.service'].Service(executable_path='${CHROMEDRIVER_PATH}')    sys
-            Open Browser    ${url}    Chrome    options=${options}    service=${service}
-        ELSE
-            Open Browser    ${url}    Chrome    options=${options}
-        END
+        Open Browser    ${url}    Chrome    options=${options}
     ELSE IF    '${browser_lower}' == 'edge'
         ${options}=    Evaluate    sys.modules['selenium.webdriver'].EdgeOptions()    sys
         Evaluate    $options.add_argument('--no-sandbox')    sys
         Evaluate    $options.add_argument('--disable-dev-shm-usage')    sys
-        Evaluate    $options.add_argument('--disable-gpu')    sys
         Evaluate    $options.add_argument('--window-size=1920,1080')    sys
         IF    '${HEADLESS}' == 'TRUE'
             Evaluate    $options.add_argument('--headless=new')    sys
@@ -62,16 +53,17 @@ Open Browser For URL
         Open Browser    ${url}    Edge    options=${options}
     ELSE IF    '${browser_lower}' == 'firefox'
         ${options}=    Evaluate    sys.modules['selenium.webdriver'].FirefoxOptions()    sys
+        Evaluate    $options.add_argument('--window-size=1920,1080')    sys
         IF    '${HEADLESS}' == 'TRUE'
             Evaluate    $options.add_argument('--headless')    sys
-            Evaluate    $options.add_argument('--width=1920')    sys
-            Evaluate    $options.add_argument('--height=1080')    sys
         END
         Open Browser    ${url}    Firefox    options=${options}
     ELSE
         Fail    Unsupported browser '${BROWSER}'. Supported values: Chrome, Edge, Firefox.
     END
-    Maximize Browser Window
+    IF    '${HEADLESS}' != 'TRUE'
+        Maximize Browser Window
+    END
 
 Close Browser Session
     Close All Browsers
