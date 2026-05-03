@@ -34,6 +34,18 @@ jobs:
         with:
           python-version: '3.13.3'
 
+      - name: Install Chrome System Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            chromium-browser \
+            chromium-codecs-ffmpeg \
+            libnss3 \
+            libatk-bridge2.0-0 \
+            libdrm2 \
+            libxkbcommon0 \
+            libgbm1
+
       - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
@@ -74,13 +86,25 @@ jobs:
         with:
           python-version: '3.13.3'
 
+      - name: Install Chrome System Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            chromium-browser \
+            chromium-codecs-ffmpeg \
+            libnss3 \
+            libatk-bridge2.0-0 \
+            libdrm2 \
+            libxkbcommon0 \
+            libgbm1
+
       - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
       - name: Install Chrome Browser
-        uses: browser-actions/setup-chrome@v1
+        uses: browser-actions/setup-chrome@latest
         with:
           chrome-version: stable
 
