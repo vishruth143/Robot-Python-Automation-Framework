@@ -1,11 +1,26 @@
 name: CI Tests
 
+# Triggers: on push to relevant paths/branches, pull requests to main, and daily schedule
 on:
   push:
-    branches: [ main ]
+    paths:
+      - '.github/**'
+      - 'config/**'
+      - 'framework/**'
+      - 'tests/**'
+      - 'pytest.ini'
+      - 'requirements.txt'
+    branches:
+      - '**'
+
   pull_request:
-    branches: [ main ]
+    branches:
+      - main
+
   workflow_dispatch:
+
+  schedule:
+    - cron: '30 3 * * *'  # Runs at 09:00 AM IST every day
 
 jobs:
   api-tests:
