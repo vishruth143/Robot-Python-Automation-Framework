@@ -114,16 +114,29 @@ jobs:
           CHROME_BIN="${{ steps.setup-chrome.outputs.chrome-path }}"
           echo "Chrome binary: $CHROME_BIN"
           CHROME_VERSION=$("$CHROME_BIN" --version | grep -oP '\d+\.\d+\.\d+\.\d+' | head -1)
-          echo "Chrome version: $CHROME_VERSION"
+          echo "Chrome full version: $CHROME_VERSION"
           python3 - <<PYEOF
-          import os
+          import os, subprocess
           from webdriver_manager.chrome import ChromeDriverManager
-          from webdriver_manager.core.os_manager import ChromeType
-          driver_path = ChromeDriverManager().install()
+
+          chrome_bin = os.environ.get('CHROME_BIN', '')
+
+          # Get the exact full version from the binary (most reliable source)
+          result = subprocess.run([chrome_bin, '--version'], capture_output=True, text=True)
+          raw = result.stdout.strip()
+          print(f"Chrome --version output: {raw}")
+
+          import re
+          match = re.search(r'(\d+\.\d+\.\d+\.\d+)', raw)
+          chrome_version = match.group(1) if match else ''
+          print(f"Parsed Chrome version: {chrome_version}")
+
+          driver_path = ChromeDriverManager(driver_version=chrome_version).install()
           print(f"ChromeDriver installed at: {driver_path}")
+
           with open(os.environ['GITHUB_ENV'], 'a') as f:
               f.write(f"CHROMEDRIVER_PATH={driver_path}\n")
-              f.write(f"CHROME_BINARY={os.environ.get('CHROME_BIN', '')}\n")
+              f.write(f"CHROME_BINARY={chrome_bin}\n")
           PYEOF
         env:
           CHROME_BIN: ${{ steps.setup-chrome.outputs.chrome-path }}
