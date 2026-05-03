@@ -1,0 +1,286 @@
+# .github/workflows/ci.yml
+name: CI - Robot Framework Parallel Tests
+
+# Triggers: on push to relevant paths/branches, pull requests to main, and daily schedule
+on:
+  push:
+    paths:
+      - '.github/**'
+      - 'tests/**'
+      - 'executor/**'
+      - 'requirements.txt'
+    branches:
+      - '**'
+
+  pull_request:
+    branches:
+      - main
+
+  schedule:
+    - cron: '30 3 * * *'  # Runs at 09:00 AM IST every day
+
+jobs:
+
+  # Lint job: validates Robot Framework .robot files via dry-run
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13.3'
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Lint Robot Framework Files (Dry Run)
+        run: |
+          echo "Running Robot Framework dry-run to validate test syntax..."
+          python -m robot --dryrun --outputdir output/lint \
+            --variable BROWSER:chrome \
+            --variable HEADLESS:TRUE \
+            tests/api/ tests/ui/heroku/ tests/ui/pta/
+          echo "✅ Robot Framework lint (dry-run) passed."
+
+  # Build and test job: runs all tests in parallel using pabot
+  build-and-test:
+    needs: lint
+    runs-on: ubuntu-latest
+    outputs:
+      total:      ${{ steps.test_results.outputs.total }}
+      passed:     ${{ steps.test_results.outputs.passed }}
+      failed:     ${{ steps.test_results.outputs.failed }}
+      skipped:    ${{ steps.test_results.outputs.skipped }}
+      failed_ui:  ${{ steps.test_results.outputs.failed_ui }}
+      failed_api: ${{ steps.test_results.outputs.failed_api }}
+
+    env:
+      REGION: QA
+      BROWSER: chrome
+      HEADLESS: TRUE
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13.3'
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Install Chrome Browser
+        uses: browser-actions/setup-chrome@v1
+        with:
+          chrome-version: stable
+
+      - name: Ensure Output Directories Exist
+        run: |
+          mkdir -p output/reports
+          mkdir -p output/logs
+          mkdir -p output/screenshots
+
+      - name: Run All Tests in Parallel with Pabot
+        run: |
+          python -m pabot \
+            --processes 4 \
+            --outputdir output \
+            --output output.xml \
+            --log log.html \
+            --report report.html \
+            --variable BROWSER:${{ env.BROWSER }} \
+            --variable HEADLESS:${{ env.HEADLESS }} \
+            tests/api/ tests/ui/heroku/ tests/ui/pta/
+        continue-on-error: true
+
+      - name: Parse Test Results
+        if: always()
+        id: test_results
+        run: |
+          python3 - <<'PYEOF'
+          import os, sys, xml.etree.ElementTree as ET
+
+          xml_path = 'output/output.xml'
+          gho = os.environ.get('GITHUB_OUTPUT', '')
+
+          def write(key, value):
+              if gho:
+                  with open(gho, 'a') as f:
+                      f.write(f"{key}={value}\n")
+              print(f"{key}={value}")
+
+          if not os.path.isfile(xml_path):
+              for k in ('total', 'passed', 'failed', 'skipped'):
+                  write(k, '0')
+              write('failed_ui', 'None')
+              write('failed_api', 'None')
+              sys.exit(0)
+
+          tree = ET.parse(xml_path)
+          root = tree.getroot()
+
+          total = passed = failed = skipped = 0
+          failed_ui_tests = []
+          failed_api_tests = []
+
+          # Build a map from test element to suite source path
+          def collect_tests(suite_elem, source=''):
+              src = suite_elem.get('source', source)
+              results = {}
+              for child in suite_elem:
+                  if child.tag == 'suite':
+                      results.update(collect_tests(child, src))
+                  elif child.tag == 'test':
+                      results[id(child)] = src
+              return results
+
+          test_source_map = {}
+          for suite in root.iter('suite'):
+              test_source_map.update(collect_tests(suite))
+
+          for test in root.iter('test'):
+              status_elem = test.find('status')
+              if status_elem is None:
+                  continue
+              status = status_elem.get('status', '')
+              name   = test.get('name', 'unknown')
+              source = test_source_map.get(id(test), '')
+
+              total += 1
+              if status == 'PASS':
+                  passed += 1
+              elif status == 'FAIL':
+                  failed += 1
+                  if '/api/' in source or '\\api\\' in source:
+                      failed_api_tests.append(name)
+                  else:
+                      failed_ui_tests.append(name)
+              elif status == 'SKIP':
+                  skipped += 1
+
+          write('total',      str(total))
+          write('passed',     str(passed))
+          write('failed',     str(failed))
+          write('skipped',    str(skipped))
+          write('failed_ui',  ', '.join(failed_ui_tests)  if failed_ui_tests  else 'None')
+          write('failed_api', ', '.join(failed_api_tests) if failed_api_tests else 'None')
+
+          print(f"Results → Total:{total} Passed:{passed} Failed:{failed} Skipped:{skipped}")
+
+          if failed > 0:
+              sys.exit(1)
+          PYEOF
+
+      - name: Upload Robot Framework HTML Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: robot-html-report
+          path: |
+            output/report.html
+            output/log.html
+
+      - name: Upload Robot Framework Output XML
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: robot-output-xml
+          path: output/output.xml
+
+      - name: Upload Screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: screenshots
+          path: output/screenshots
+
+  # Notification job: sends CI status to Microsoft Teams via webhook
+  notify-teams:
+    name: Notify Teams
+    needs: [ lint, build-and-test ]
+    runs-on: ubuntu-latest
+    if: always()  # Always runs regardless of job outcomes
+
+    steps:
+      - name: Send Notification to Microsoft Teams
+        env:
+          TEAMS_WEBHOOK_URL: ${{ secrets.TEAMS_WEBHOOK_URL }}
+          LINT_STATUS:       ${{ needs.lint.result }}
+          BUILD_STATUS:      ${{ needs.build-and-test.result }}
+          GITHUB_REF_NAME:   ${{ github.ref_name }}
+          GITHUB_SERVER_URL: ${{ github.server_url }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_RUN_ID:     ${{ github.run_id }}
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
+          GITHUB_ACTOR:      ${{ github.actor }}
+          TOTAL_TESTS:       ${{ needs.build-and-test.outputs.total }}
+          PASSED_TESTS:      ${{ needs.build-and-test.outputs.passed }}
+          FAILED_TESTS:      ${{ needs.build-and-test.outputs.failed }}
+          SKIPPED_TESTS:     ${{ needs.build-and-test.outputs.skipped }}
+          FAILED_UI:         ${{ needs.build-and-test.outputs.failed_ui }}
+          FAILED_API:        ${{ needs.build-and-test.outputs.failed_api }}
+        run: |
+          echo "Lint Job Status:           $LINT_STATUS"
+          echo "Build and Test Job Status: $BUILD_STATUS"
+
+          OVERALL_STATUS="success"
+          STATUS_EMOJI="✅"
+          COLOR="00FF00"
+
+          if [ "$LINT_STATUS" != "success" ] || [ "$BUILD_STATUS" != "success" ]; then
+            OVERALL_STATUS="failure"
+            STATUS_EMOJI="❌"
+            COLOR="FF0000"
+          fi
+
+          # Build failure-details facts only for layers that have failures
+          FAILURE_FACTS=""
+          for LAYER_KEY in "🖥️ UI:$FAILED_UI" "🔌 API:$FAILED_API"; do
+            LABEL="${LAYER_KEY%%:*}"
+            NAMES="${LAYER_KEY#*:}"
+            if [ -n "$NAMES" ] && [ "$NAMES" != "None" ]; then
+              FAILURE_FACTS="${FAILURE_FACTS}{ \"name\": \"❌ $LABEL Failures\", \"value\": \"$NAMES\" },"
+            fi
+          done
+
+          MESSAGE=$(cat <<EOF
+          {
+            "@type": "MessageCard",
+            "@context": "http://schema.org/extensions",
+            "themeColor": "$COLOR",
+            "summary": "Robot Framework CI Status",
+            "sections": [ {
+              "activityTitle": "$STATUS_EMOJI Robot Framework CI Pipeline Report",
+              "facts": [
+                { "name": "Trigger",       "value": "$GITHUB_EVENT_NAME" },
+                { "name": "Triggered By",  "value": "$GITHUB_ACTOR" },
+                { "name": "Lint Job",      "value": "$LINT_STATUS" },
+                { "name": "Build & Test",  "value": "$BUILD_STATUS" },
+                { "name": "Total Tests",   "value": "$TOTAL_TESTS" },
+                { "name": "✅ Passed",      "value": "$PASSED_TESTS" },
+                { "name": "❌ Failed",      "value": "$FAILED_TESTS" },
+                { "name": "⏭️ Skipped",     "value": "$SKIPPED_TESTS" },
+                $FAILURE_FACTS
+                { "name": "Branch",        "value": "$GITHUB_REF_NAME" },
+                { "name": "Run",           "value": "[View Run]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID)" }
+              ],
+              "markdown": true
+            } ]
+          }
+          EOF
+          )
+
+          curl --retry 3 --retry-delay 5 \
+            -H "Content-Type: application/json" \
+            -d "$MESSAGE" \
+            "$TEAMS_WEBHOOK_URL"
