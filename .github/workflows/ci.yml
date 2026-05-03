@@ -59,10 +59,19 @@ jobs:
     needs: lint
     runs-on: ubuntu-latest
 
-
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
+
+      - name: Setup Chrome
+        uses: browser-actions/setup-chrome@v1
+        with:
+          chrome-version: 'stable'
+
+      - name: Verify Chrome & ChromeDriver
+        run: |
+          google-chrome --version
+          chromedriver --version
 
       - name: Set up Python
         uses: actions/setup-python@v5
