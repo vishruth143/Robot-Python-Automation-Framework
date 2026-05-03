@@ -22,13 +22,14 @@ Cross-browser UI Testing · REST API Testing · Keyword-Driven & Data-Driven Tes
 ## 📑 Table of Contents
 
 1. [Features](#-features)
-2. [Prerequisites](#️-prerequisites)
+2. [Prerequisites](#-prerequisites)
 3. [Quick Start](#-quick-start)
 4. [Project Structure](#-project-structure)
-5. [Page Object Model](#-page-object-model)
-6. [Variables](#-variables)
-7. [Robot Framework CLI Reference](#-robot-framework-cli-reference)
-8. [Running Tests](#-running-tests)
+5. [Locator Naming Conventions](#-locator-naming-conventions)
+6. [Page Object Model](#-page-object-model)
+7. [Variables](#-variables)
+8. [Robot Framework CLI Reference](#-robot-framework-cli-reference)
+9. [Running Tests](#-running-tests)
    - [Executor Scripts](#executor-scripts)
    - [UI · PTA](#ui--pta)
    - [UI · Heroku](#ui--heroku)
@@ -37,12 +38,12 @@ Cross-browser UI Testing · REST API Testing · Keyword-Driven & Data-Driven Tes
    - [Browser & Headless Mode Quick Reference](#browser--headless-mode-quick-reference)
    - [Skipping Tests](#skipping-tests)
    - [Parallel Execution (pabot)](#parallel-execution-pabot)
-9. [Reports](#-reports)
+10. [Reports](#-reports)
     - [Built-in Robot Report](#built-in-robot-report)
-10. [CI/CD Integration](#-cicd-integration)
+11. [CI/CD Integration](#-cicd-integration)
     - [GitHub Actions](#-github-actions)
-11. [Conventional Commits](#-conventional-commits)
-12. [MCP Servers](#-mcp-servers)
+12. [Conventional Commits](#-conventional-commits)
+13. [MCP Servers](#-mcp-servers)
 
 ---
 
@@ -69,7 +70,7 @@ Cross-browser UI Testing · REST API Testing · Keyword-Driven & Data-Driven Tes
 
 ---
 
-## 🛠️ Prerequisites
+## 🛠 Prerequisites
 
 Ensure the following tools are installed before setting up the project:
 
@@ -185,7 +186,59 @@ Robot-Python-Automation-Framework/
 
 ---
 
-## 🏗️ Page Object Model
+## 🏷 Locator Naming Conventions
+
+All locators defined in `pages/*.robot` files follow a consistent suffix convention so the element type is immediately clear from the variable name alone.
+
+| Element Type       | Suffix      | Example                              |
+|--------------------|-------------|--------------------------------------|
+| Button             | `_btn`      | `${login_btn}`                       |
+| Text field / Input | `_txt`      | `${username_txt}`                    |
+| Password field     | `_pwd`      | `${password_pwd}`                    |
+| Link / Anchor      | `_lnk`      | `${logout_lnk}`                      |
+| Dropdown / Select  | `_ddl`      | `${region_ddl}`                      |
+| Checkbox           | `_chk`      | `${remember_me_chk}`                 |
+| Radio button       | `_rdo`      | `${gender_male_rdo}`                 |
+| Label / Text span  | `_lbl`      | `${error_message_lbl}`               |
+| Header             | `_hdr`      | `${page_title_hdr}`                  |
+| Image              | `_img`      | `${logo_img}`                        |
+| Table              | `_tbl`      | `${results_tbl}`                     |
+| List / `<ul>`      | `_lst`      | `${nav_menu_lst}`                    |
+| List item / `<li>` | `_itm`      | `${cart_item_itm}`                   |
+| Form               | `_frm`      | `${login_frm}`                       |
+| Container / `<div>`| `_ctr`      | `${modal_ctr}`                       |
+| Icon               | `_ico`      | `${search_ico}`                      |
+| Textarea           | `_area`     | `${comments_area}`                   |
+| Alert / Toast      | `_alert`    | `${success_alert}`                   |
+
+### Naming Pattern
+
+```text
+${<descriptive_name>_<suffix>}
+```
+
+**Examples:**
+
+```robot
+# pages/login_page.robot
+${username_txt}         id=username
+${password_pwd}         id=password
+${login_btn}            id=submit
+${error_message_lbl}    id=error
+
+# pages/checkboxes_page.robot
+${checkbox_1_chk}       css=#checkboxes input:nth-of-type(1)
+${checkbox_2_chk}       css=#checkboxes input:nth-of-type(2)
+
+# pages/dropdown_page.robot
+${options_ddl}          id=dropdown
+```
+
+> 💡 This convention makes locators self-documenting — no need to inspect the HTML to know what type of element a variable represents.
+
+---
+
+## 🏗 Page Object Model
 
 All three UI suites follow the **Page Object Model (POM)** pattern. Each page in the application has a dedicated `.robot` file under a `pages/` folder that **owns** the locators and page-level keywords for that page. Test files contain only test cases — no locators and no keyword definitions.
 
@@ -554,7 +607,7 @@ robot -d output --skip "TC3*" tests/ui/pta/
 |-------------------------------|-------------------------------------------------------------------|
 | Skip tests tagged `skip`      | `robot -d output --exclude skip tests/ui/`                        |
 | Run only tests tagged `smoke` | `robot -d output --include smoke tests/ui/`                       |
-| Run one test by name          | `robot -d output --test "TC1 - ..." tests/ui/pta/test_pta.robot`  |
+| Run one test by name          | `robot -d output --test "TC1 - Positive login with valid credentials" tests/ui/pta/test_pta.robot`  |
 | Skip by name pattern (RF 5+)  | `robot -d output --skip "TC3*" tests/ui/pta/`                     |
 
 ---

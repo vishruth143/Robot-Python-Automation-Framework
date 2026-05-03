@@ -9,6 +9,10 @@ Resource   ../common/common.robot
 
 
 *** Variables ***
+# =============================================================================
+# Environment Config
+# =============================================================================
+
 # Base URLs per region
 &{JSONPLACEHOLDER_URLS}
 ...    DEV=https://jsonplaceholder.typicode.com
@@ -25,7 +29,11 @@ ${ENDPOINT_POSTS_1_COMMENTS}    /posts/1/comments
 ${ENDPOINT_USERS}               /users
 ${ENDPOINT_USERS_1_TODOS}       /users/1/todos
 
-# Expected Fields
+# =============================================================================
+# Test Data
+# =============================================================================
+
+# Expected response fields
 @{POST_REQUIRED_FIELDS}         id    title    body    userId
 @{COMMENT_REQUIRED_FIELDS}      id    postId    name    email    body
 @{USER_REQUIRED_FIELDS}         id    name    username    email    address    phone    website    company

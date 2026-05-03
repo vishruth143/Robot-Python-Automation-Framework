@@ -18,6 +18,10 @@ Documentation    Resource file for The Internet Herokuapp UI suite.
 Resource         ../common/common.robot
 
 *** Variables ***
+# =============================================================================
+# Environment Config
+# =============================================================================
+
 # Environment URLs per region
 &{HEROKU_URLS}
 ...    DEV=https://the-internet.herokuapp.com
@@ -25,17 +29,21 @@ Resource         ../common/common.robot
 ...    STAGE=https://the-internet.herokuapp.com
 ...    PROD=https://the-internet.herokuapp.com
 
-# Test credentials (can be overridden via --variable or environment variables)
-${VALID_USERNAME}       %{VALID_USERNAME=tomsmith}
-${VALID_PASSWORD}       %{VALID_PASSWORD=SuperSecretPassword!}
-${INVALID_USERNAME}     %{INVALID_USERNAME=wronguser}
-${INVALID_PASSWORD}     %{INVALID_PASSWORD=wrongpassword}
-
 # URL paths — structural, not data
 ${login_url}              /login
 ${checkboxes_url}         /checkboxes
 ${dropdown_url}           /dropdown
 ${add_remove_url}         /add_remove_elements/
+
+# =============================================================================
+# Test Data
+# =============================================================================
+
+# Test credentials (can be overridden via --variable or environment variables)
+${VALID_USERNAME}       %{VALID_USERNAME=tomsmith}
+${VALID_PASSWORD}       %{VALID_PASSWORD=SuperSecretPassword!}
+${INVALID_USERNAME}     %{INVALID_USERNAME=wronguser}
+${INVALID_PASSWORD}     %{INVALID_PASSWORD=wrongpassword}
 
 *** Keywords ***
 Open Herokuapp Page

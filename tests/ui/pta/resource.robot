@@ -13,12 +13,20 @@ Documentation    Resource file for the Practice Test Automation (PTA) UI suite.
 Resource         ../common/common.robot
 
 *** Variables ***
+# =============================================================================
+# Environment Config
+# =============================================================================
+
 # Environment URLs per region
 &{PTA_URLS}
 ...    DEV=https://practicetestautomation.com/practice-test-login/
 ...    QA=https://practicetestautomation.com/practice-test-login/
 ...    STAGE=https://practicetestautomation.com/practice-test-login/
 ...    PROD=https://practicetestautomation.com/practice-test-login/
+
+# =============================================================================
+# Test Data
+# =============================================================================
 
 # Test credentials (can be overridden via --variable or environment variables)
 ${VALID_USERNAME}       %{VALID_USERNAME=student}

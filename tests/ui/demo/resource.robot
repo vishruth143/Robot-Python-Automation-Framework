@@ -13,6 +13,10 @@ Documentation    Resource file for the Demo UI suite (rahulshettyacademy.com).
 Resource         ../common/common.robot
 
 *** Variables ***
+# =============================================================================
+# Environment Config
+# =============================================================================
+
 # Environment URLs per region
 &{DEMO_URLS}
 ...    DEV=https://dev.rahulshettyacademy.com/loginpagePractise
@@ -20,11 +24,17 @@ Resource         ../common/common.robot
 ...    STAGE=https://stage.rahulshettyacademy.com/loginpagePractise
 ...    PROD=https://rahulshettyacademy.com/loginpagePractise
 
-# Test credentials and data (can be overridden via --variable or environment variables)
+# =============================================================================
+# Test Data
+# =============================================================================
+
+# Test credentials (can be overridden via --variable or environment variables)
 ${VALID_USERNAME}       %{VALID_USERNAME=rahulshettyacademy}
 ${VALID_PASSWORD}       %{VALID_PASSWORD=Learning@830$3mK2}
 ${INVALID_USERNAME}     %{INVALID_USERNAME=test}
 ${INVALID_PASSWORD}     %{INVALID_PASSWORD=test}
+
+# Test data
 ${CARD_NAME}            iphone X
 
 *** Keywords ***
