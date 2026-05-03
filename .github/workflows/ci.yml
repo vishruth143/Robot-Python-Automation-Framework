@@ -68,10 +68,13 @@ jobs:
         with:
           chrome-version: 'stable'
 
-      - name: Verify Chrome & ChromeDriver
+      - name: Remove pre-installed ChromeDriver (let Selenium Manager resolve it)
         run: |
-          google-chrome --version
-          chromedriver --version
+          sudo rm -f /usr/local/share/chromedriver-linux64/chromedriver
+          sudo rm -f /usr/bin/chromedriver
+
+      - name: Verify Chrome
+        run: google-chrome --version
 
       - name: Set up Python
         uses: actions/setup-python@v5

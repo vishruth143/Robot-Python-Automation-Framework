@@ -36,8 +36,9 @@ Open Browser For URL
         # Always-on flags — required in CI/Docker containers
         Evaluate    $options.add_argument('--no-sandbox')    sys
         Evaluate    $options.add_argument('--disable-dev-shm-usage')    sys
+        Evaluate    $options.add_argument('--disable-gpu')    sys
         Evaluate    $options.add_argument('--window-size=1920,1080')    sys
-        # Headless-only flag — mirrors "if headless: add_argument('--headless=new')"
+        # Headless-only flag
         IF    '${HEADLESS}' == 'TRUE'
             Evaluate    $options.add_argument('--headless=new')    sys
         END
