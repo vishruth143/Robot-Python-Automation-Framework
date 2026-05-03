@@ -104,9 +104,29 @@ jobs:
           pip install -r requirements.txt
 
       - name: Install Chrome Browser
+        id: setup-chrome
         uses: browser-actions/setup-chrome@latest
         with:
           chrome-version: stable
+
+      - name: Install Matching ChromeDriver via webdriver-manager
+        run: |
+          CHROME_BIN="${{ steps.setup-chrome.outputs.chrome-path }}"
+          echo "Chrome binary: $CHROME_BIN"
+          CHROME_VERSION=$("$CHROME_BIN" --version | grep -oP '\d+\.\d+\.\d+\.\d+' | head -1)
+          echo "Chrome version: $CHROME_VERSION"
+          python3 - <<PYEOF
+          import os
+          from webdriver_manager.chrome import ChromeDriverManager
+          from webdriver_manager.core.os_manager import ChromeType
+          driver_path = ChromeDriverManager().install()
+          print(f"ChromeDriver installed at: {driver_path}")
+          with open(os.environ['GITHUB_ENV'], 'a') as f:
+              f.write(f"CHROMEDRIVER_PATH={driver_path}\n")
+              f.write(f"CHROME_BINARY={os.environ.get('CHROME_BIN', '')}\n")
+          PYEOF
+        env:
+          CHROME_BIN: ${{ steps.setup-chrome.outputs.chrome-path }}
 
       - name: Ensure Output Directories Exist
         run: |
@@ -124,6 +144,8 @@ jobs:
             --report report.html \
             --variable BROWSER:${{ env.BROWSER }} \
             --variable HEADLESS:${{ env.HEADLESS }} \
+            --variable CHROME_BINARY:${CHROME_BINARY} \
+            --variable CHROMEDRIVER_PATH:${CHROMEDRIVER_PATH} \
             tests/api/ tests/ui/heroku/ tests/ui/pta/
         continue-on-error: true
 

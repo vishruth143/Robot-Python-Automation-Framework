@@ -19,12 +19,16 @@ ${REGION}              %{REGION=QA}
 ${BROWSER}             %{BROWSER=Chrome}
 ${HEADLESS}            %{HEADLESS=TRUE}
 ${DEFAULT_TIMEOUT}     10
+${CHROME_BINARY}       %{CHROME_BINARY=}
+${CHROMEDRIVER_PATH}   %{CHROMEDRIVER_PATH=}
 
 *** Keywords ***
 Open Browser For URL
     [Documentation]    Launch the configured browser and navigate to ${url}.
     ...                Reads BROWSER and HEADLESS variables; applies the
     ...                correct driver options automatically.
+    ...                CHROME_BINARY and CHROMEDRIVER_PATH can be set for CI
+    ...                environments to point to specific browser/driver installs.
     [Arguments]    ${url}
     ${browser_lower}=    Evaluate    '${BROWSER}'.lower()
     IF    '${browser_lower}' == 'chrome'
@@ -33,10 +37,19 @@ Open Browser For URL
         Evaluate    $options.add_argument('--disable-dev-shm-usage')    sys
         Evaluate    $options.add_argument('--disable-gpu')    sys
         Evaluate    $options.add_argument('--window-size=1920,1080')    sys
+        Evaluate    $options.add_argument('--remote-debugging-port=0')    sys
         IF    '${HEADLESS}' == 'TRUE'
             Evaluate    $options.add_argument('--headless=new')    sys
         END
-        Open Browser    ${url}    Chrome    options=${options}
+        IF    '${CHROME_BINARY}' != ''
+            Evaluate    setattr($options, 'binary_location', '${CHROME_BINARY}')    sys
+        END
+        IF    '${CHROMEDRIVER_PATH}' != ''
+            ${service}=    Evaluate    sys.modules['selenium.webdriver.chrome.service'].Service(executable_path='${CHROMEDRIVER_PATH}')    sys
+            Open Browser    ${url}    Chrome    options=${options}    service=${service}
+        ELSE
+            Open Browser    ${url}    Chrome    options=${options}
+        END
     ELSE IF    '${browser_lower}' == 'edge'
         ${options}=    Evaluate    sys.modules['selenium.webdriver'].EdgeOptions()    sys
         Evaluate    $options.add_argument('--no-sandbox')    sys
