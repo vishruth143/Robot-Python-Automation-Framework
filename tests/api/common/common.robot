@@ -6,6 +6,8 @@ Library    OperatingSystem
 
 
 *** Variables ***
+${REGION}            %{REGION=QA}
+
 # Common HTTP Status Codes
 ${STATUS_200}        200
 ${STATUS_201}        201

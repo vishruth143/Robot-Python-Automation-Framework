@@ -1,15 +1,21 @@
 *** Settings ***
 Documentation    Resource file for the JSONPlaceholder API suite.
-...
-...              Base URL is loaded from config/api/jsonplaceholder/api_test_env_config.yml
-...              Request payloads are loaded from config/api/jsonplaceholder/api_test_data_config.json
-...              Both are injected via --variablefile config/config_loader.py:api_jsonplaceholder:<REGION>
+...              Base URLs and request payloads are defined below as variables.
+...              REGION (DEV/QA/STAGE/PROD) is resolved at runtime via common.robot,
+...              defaulting to QA.
 Library    RequestsLibrary
 Library    Collections
 Resource   ../common/common.robot
 
 
 *** Variables ***
+# Base URLs per region
+&{JSONPLACEHOLDER_URLS}
+...    DEV=https://jsonplaceholder.typicode.com
+...    QA=https://jsonplaceholder.typicode.com
+...    STAGE=https://jsonplaceholder.typicode.com
+...    PROD=https://jsonplaceholder.typicode.com
+
 ${JSONPLACEHOLDER_SESSION}      jsonplaceholder
 
 # Endpoints
@@ -28,11 +34,18 @@ ${ENDPOINT_USERS_1_TODOS}       /users/1/todos
 # Expected counts
 ${EXPECTED_USERS_COUNT}         ${10}
 
+# Request payloads
+&{CREATE_POST_PAYLOAD}          title=foo    body=bar    userId=${1}
+&{UPDATE_POST_PAYLOAD}          id=${1}    title=updated title    body=updated body    userId=${1}
+&{PATCH_POST_PAYLOAD}           title=patched title
+&{CREATE_COMMENT_PAYLOAD}       postId=${1}    name=test comment    email=test@example.com    body=This is a test comment.
+
 
 *** Keywords ***
 Open JSONPlaceholder Session
-    [Documentation]    Creates a session for JSONPlaceholder API using JSONPLACEHOLDER_BASE_URL injected by config_loader.py.
-    Create API Session    ${JSONPLACEHOLDER_SESSION}    ${JSONPLACEHOLDER_BASE_URL}
+    [Documentation]    Creates a session for JSONPlaceholder API using the URL for REGION.
+    ${BASE_URL}=    Get From Dictionary    ${JSONPLACEHOLDER_URLS}    ${REGION}
+    Create API Session    ${JSONPLACEHOLDER_SESSION}    ${BASE_URL}
 
 Close JSONPlaceholder Session
     [Documentation]    Closes the JSONPlaceholder API session.

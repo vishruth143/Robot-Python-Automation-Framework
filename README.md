@@ -3,16 +3,17 @@
 
 # 🤖 Robot-Python-Automation-Framework
 
-**A scalable, maintainable test automation framework for UI testing using Robot Framework.**
+**A scalable, maintainable test automation framework for UI and API testing using Robot Framework.**
 
 ![Python](https://img.shields.io/badge/Python-3.13-blue?logo=python&logoColor=white)
 ![Robot Framework](https://img.shields.io/badge/Robot%20Framework-7.4.2-black?logo=robotframework&logoColor=white)
 ![SeleniumLibrary](https://img.shields.io/badge/SeleniumLibrary-6.8.0-43B02A?logo=selenium&logoColor=white)
+![RequestsLibrary](https://img.shields.io/badge/RequestsLibrary-0.9.7-blue)
 ![pabot](https://img.shields.io/badge/pabot-5.2.2-orange)
 ![License](https://img.shields.io/badge/License-MIT-green)
 
-Built with Python · Robot Framework · SeleniumLibrary · pabot
-Cross-browser UI Testing · Keyword-Driven & Data-Driven Testing · Page Object Model · Config-Driven · CI/CD Ready
+Built with Python · Robot Framework · SeleniumLibrary · RequestsLibrary · pabot
+Cross-browser UI Testing · REST API Testing · Keyword-Driven & Data-Driven Testing · Page Object Model · CI/CD Ready
 
 </div>
 
@@ -25,10 +26,9 @@ Cross-browser UI Testing · Keyword-Driven & Data-Driven Testing · Page Object 
 3. [Quick Start](#-quick-start)
 4. [Project Structure](#-project-structure)
 5. [Page Object Model](#-page-object-model)
-6. [Config-Driven Test Data](#-config-driven-test-data)
-7. [Variables](#-variables)
-8. [Robot Framework CLI Reference](#-robot-framework-cli-reference)
-9. [Running Tests](#-running-tests)
+6. [Variables](#-variables)
+7. [Robot Framework CLI Reference](#-robot-framework-cli-reference)
+8. [Running Tests](#-running-tests)
    - [Executor Scripts](#executor-scripts)
    - [UI · PTA](#ui--pta)
    - [UI · Heroku](#ui--heroku)
@@ -37,12 +37,12 @@ Cross-browser UI Testing · Keyword-Driven & Data-Driven Testing · Page Object 
    - [Browser & Headless Mode Quick Reference](#browser--headless-mode-quick-reference)
    - [Skipping Tests](#skipping-tests)
    - [Parallel Execution (pabot)](#parallel-execution-pabot)
-10. [Reports](#-reports)
+9. [Reports](#-reports)
     - [Built-in Robot Report](#built-in-robot-report)
-11. [CI/CD Integration](#-cicd-integration)
+10. [CI/CD Integration](#-cicd-integration)
     - [GitHub Actions](#-github-actions)
-12. [Conventional Commits](#-conventional-commits)
-13. [MCP Servers](#-mcp-servers)
+11. [Conventional Commits](#-conventional-commits)
+12. [MCP Servers](#-mcp-servers)
 
 ---
 
@@ -50,21 +50,22 @@ Cross-browser UI Testing · Keyword-Driven & Data-Driven Testing · Page Object 
 
 | #  | Feature                                                                                                         | Status |
 |----|-----------------------------------------------------------------------------------------------------------------|:------:|
-| 1  | 🤖 Robot Framework · Python · SeleniumLibrary test automation                                                   | ✅     |
-| 2  | 🔧 Python programming support                                                                                    | ✅     |
-| 3  | 🌐 Cross-browser UI testing (Chrome, Firefox, Edge) — headless & headful                                        | ✅     |
-| 4  | 📝 Keyword-Driven Testing (KDT) with reusable `.robot` resource files                                           | ✅     |
-| 5  | 📊 Built-in HTML log, report and XML output                                                                      | ✅     |
-| 6  | 🗂️ Resource files for shared keywords and variables                                                             | ✅     |
-| 7  | 🧪 Data-driven testing with Robot Framework variables                                                            | ✅     |
-| 8  | 🔁 Test Setup & Teardown for browser lifecycle management                                                        | ✅     |
-| 9  | 🧩 Reusable demo tests for validation and learning                                                               | ✅     |
+| 1  | 🤖 Robot Framework · Python · SeleniumLibrary UI test automation                                               | ✅     |
+| 2  | 🌐 REST API testing with RequestsLibrary (GET, POST, PUT, PATCH, DELETE)                                        | ✅     |
+| 3  | 🔧 Python programming support                                                                                    | ✅     |
+| 4  | 🌍 Cross-browser UI testing (Chrome, Firefox, Edge) — headless & headful                                        | ✅     |
+| 5  | 📝 Keyword-Driven Testing (KDT) with reusable `.robot` resource files                                           | ✅     |
+| 6  | 📊 Built-in HTML log, report and XML output                                                                      | ✅     |
+| 7  | 🗂️ Resource files for shared keywords and variables                                                             | ✅     |
+| 8  | 🧪 Data-driven testing with Robot Framework variables                                                            | ✅     |
+| 9  | 🔁 Test Setup & Teardown for browser and session lifecycle management                                            | ✅     |
 | 10 | ⚙️ Runtime `--variable` overrides for `BROWSER`, `HEADLESS` and `REGION` — no code changes needed              | ✅     |
-| 11 | 🌍 Multi-environment support via `REGION` variable (`DEV`, `QA`, `STAGE`, `PROD`)                              | ✅     |
-| 12 | 🔗 Centralised browser setup and variables (`BROWSER`, `HEADLESS`, `REGION`) in `tests/ui/common/common.robot` | ✅     |
+| 11 | 🌍 Multi-environment support via `REGION` variable (`DEV`, `QA`, `STAGE`, `PROD`) — URLs defined per-suite in `resource.robot` | ✅     |
+| 12 | 🔗 Centralised browser setup in `tests/ui/common/common.robot`; shared API keywords in `tests/api/common/common.robot` | ✅     |
 | 13 | ⚡ Parallel test execution via `pabot` (`robotframework-pabot`)                                                  | ✅     |
 | 14 | 🏗️ Page Object Model (POM) — locators and keywords separated into dedicated `pages/` files per suite           | ✅     |
-| 15 | 🗃️ Config-driven test data — environment URLs and credentials loaded from `config/` YAML/JSON via `config_loader.py` | ✅     |
+| 15 | 📦 Self-contained suites — all env URLs, credentials and payloads live directly in each suite's `resource.robot` | ✅     |
+| 16 | 🔐 Credentials read from OS environment variables at runtime (`%{VAR=default}`) — no hardcoded secrets in source  | ✅     |
 
 ---
 
@@ -109,14 +110,14 @@ pip install -r requirements.txt
 ### 4. Run tests
 
 ```powershell
-# Run all UI tests — Chrome headless, QA environment (loads config automatically)
-robot --variablefile config/config_loader.py:pta:QA -d output tests/ui/pta/
+# Run PTA UI tests — Chrome headless, QA environment
+robot -d output tests/ui/pta/
 
-# Run a specific suite
-robot --variablefile config/config_loader.py:heroku:QA -d output tests/ui/heroku/
+# Run Heroku UI tests
+robot -d output tests/ui/heroku/
 
 # Run API tests
-robot --variablefile config/config_loader.py:api_jsonplaceholder:QA -d output tests/api/
+robot -d output tests/api/jsonplaceholder/
 ```
 
 ### 5. View the report
@@ -131,27 +132,6 @@ robot --variablefile config/config_loader.py:api_jsonplaceholder:QA -d output te
 ```text
 Robot-Python-Automation-Framework/
 │
-├── config/                                         # Config-driven environment & test data
-│   ├── common_config.yml                           # Global defaults: browser, headless, region, default_timeout
-│   ├── config_loader.py                            # --variablefile loader — injects env URLs & credentials into Robot
-│   ├── api/
-│   │   └── jsonplaceholder/
-│   │       ├── api_test_env_config.yml             # JSONPlaceholder base URL per region
-│   │       └── api_test_data_config.json           # CRUD request payloads (CreatePost, UpdatePost, etc.)
-│   └── ui/
-│       ├── demo/
-│       │   ├── ui_test_env_config.yml              # Demo app URLs per region (real DEV/STAGE/PROD)
-│       │   ├── ui_test_data_config.yml             # Demo credentials & card_name  ⚠️ gitignored
-│       │   └── ui_test_data_config.yml.example     # Safe template for teams
-│       ├── heroku/
-│       │   ├── ui_test_env_config.yml              # Heroku URLs per region
-│       │   ├── ui_test_data_config.yml             # Heroku credentials  ⚠️ gitignored
-│       │   └── ui_test_data_config.yml.example
-│       └── pta/
-│           ├── ui_test_env_config.yml              # PTA URLs per region
-│           ├── ui_test_data_config.yml             # PTA credentials  ⚠️ gitignored
-│           └── ui_test_data_config.yml.example
-│
 ├── output/                                         # Auto-generated test artifacts
 │   ├── log.html                                    # Detailed Robot Framework execution log
 │   ├── output.xml                                  # Raw XML results
@@ -160,42 +140,43 @@ Robot-Python-Automation-Framework/
 ├── executor/                                       # Batch scripts for one-click test execution
 │   ├── pta_ui_tests_executor.bat                   # Cleans output & runs PTA UI tests
 │   ├── heroku_ui_tests_executor.bat                # Cleans output & runs Heroku UI tests
-│   └── demo_ui_tests_executor.bat                  # Cleans output & runs Demo UI tests
+│   ├── demo_ui_tests_executor.bat                  # Cleans output & runs Demo UI tests
+│   └── jsonplaceholder_api_tests_executor.bat      # Cleans output & runs JSONPlaceholder API tests
 │
 ├── tests/                                          # Test suite root
 │   ├── api/                                        # API test suites
 │   │   ├── common/
-│   │   │   └── common.robot                        # Shared API session keywords & HTTP status variables
+│   │   │   └── common.robot                        # Shared API keywords, HTTP status codes & REGION variable
 │   │   └── jsonplaceholder/
-│   │       ├── resource.robot                      # JSONPlaceholder session, endpoints & field lists
+│   │       ├── resource.robot                      # Base URLs per region, endpoints, payloads & session keywords
 │   │       └── test_jsonplaceholder.robot          # Full CRUD API tests (GET, POST, PUT, PATCH, DELETE)
 │   │
 │   └── ui/                                         # UI test suites
 │       ├── common/
-│       │   └── common.robot                        # Shared browser launch, teardown keywords & DEFAULT_TIMEOUT
+│       │   └── common.robot                        # Shared browser launch/teardown keywords, BROWSER, HEADLESS, REGION, DEFAULT_TIMEOUT
 │       │
 │       ├── demo/                                   # Demo / learning tests (rahulshettyacademy)
 │       │   ├── pages/
-│       │   │   ├── login_page.robot                # Login page locators + Fill The Login Form, Verify Login Error Message
-│       │   │   └── shop_page.robot                 # Shop page locators + Verify Shop Page Is Loaded, Verify Card Titles, Select Card By Name
-│       │   ├── resource.robot                      # Browser setup keyword (URLs & credentials injected by config_loader)
-│       │   └── test_demo.robot                     # Login validation + shopping cart tests (test cases only)
+│       │   │   ├── login_page.robot                # Login page locators + keywords
+│       │   │   └── shop_page.robot                 # Shop page locators + keywords
+│       │   ├── resource.robot                      # URLs per region, credentials, CARD_NAME & browser setup keyword
+│       │   └── test_demo.robot                     # Login validation + shopping cart tests
 │       │
 │       ├── heroku/                                 # The Internet Herokuapp UI tests
 │       │   ├── pages/
-│       │   │   ├── login_page.robot                # Login page locators + Login With, Verify Successful Login, Verify Login Error, Logout And Verify Redirected To Login
-│       │   │   ├── checkboxes_page.robot           # Checkboxes locators + Check/Uncheck and verify keywords
-│       │   │   ├── dropdown_page.robot             # Dropdown locators + Select Dropdown Option And Verify
-│       │   │   └── add_remove_page.robot           # Add/Remove locators + Add/Delete element keywords
-│       │   ├── resource.robot                      # URL paths + browser setup keyword (credentials injected by config_loader)
-│       │   └── test_heroku.robot                   # Login, checkboxes, dropdown, add/remove tests (test cases only)
+│       │   │   ├── login_page.robot                # Login page locators + keywords
+│       │   │   ├── checkboxes_page.robot           # Checkboxes locators + keywords
+│       │   │   ├── dropdown_page.robot             # Dropdown locators + keywords
+│       │   │   └── add_remove_page.robot           # Add/Remove locators + keywords
+│       │   ├── resource.robot                      # URLs per region, credentials, URL paths & browser setup keyword
+│       │   └── test_heroku.robot                   # Login, checkboxes, dropdown, add/remove tests
 │       │
 │       └── pta/                                    # Practice Test Automation (PTA) UI tests
 │           ├── pages/
-│           │   ├── login_page.robot                # Login page locators + Fill The Login Form, Submit Empty Login Form, Verify Error Message
-│           │   └── dashboard_page.robot            # Dashboard page locators + Verify Successful Login, Click Logout Button
-│           ├── resource.robot                      # Browser setup keyword (URLs & credentials injected by config_loader)
-│           └── test_pta.robot                      # Login positive/negative + logout tests (test cases only)
+│           │   ├── login_page.robot                # Login page locators + keywords
+│           │   └── dashboard_page.robot            # Dashboard page locators + keywords
+│           ├── resource.robot                      # URLs per region, credentials & browser setup keyword
+│           └── test_pta.robot                      # Login positive/negative + logout tests
 │
 ├── .gitignore
 ├── README.md
@@ -224,8 +205,8 @@ All three UI suites follow the **Page Object Model (POM)** pattern. Each page in
 
 | File | Responsibility |
 |---|---|
-| `resource.robot` | Browser setup keyword (`Open the browser with the PTA website url`) — URLs & credentials injected by config_loader |
-| `pages/login_page.robot` | Login locators · `Fill The Login Form` · `Submit Empty Login Form` · `Verify Error Message` · `Verify Error Message Is Visible` |
+| `resource.robot` | URLs per region (`&{PTA_URLS}`), credentials, browser setup keyword |
+| `pages/login_page.robot` | Login locators · `Fill The Login Form` · `Submit Empty Login Form` · `Verify Error Message` · `Verify Error Message Is Visible` · `Verify Redirected To Login Page` |
 | `pages/dashboard_page.robot` | Dashboard locators · `Verify Successful Login` · `Click Logout Button` |
 | `test_pta.robot` | 5 test cases — imports the 3 files above |
 
@@ -233,8 +214,8 @@ All three UI suites follow the **Page Object Model (POM)** pattern. Each page in
 
 | File | Responsibility |
 |---|---|
-| `resource.robot` | URL paths (`/login`, `/checkboxes`, etc.) + browser setup keyword (`Open Herokuapp Page`) — credentials injected by config_loader |
-| `pages/login_page.robot` | Auth locators · `Login With` · `Verify Successful Login` · `Verify Login Error` · `Logout And Verify Redirected To Login` · `Element Text Should Contain` |
+| `resource.robot` | URLs per region (`&{HEROKU_URLS}`), credentials, URL paths, browser setup keyword |
+| `pages/login_page.robot` | Auth locators · `Login With` · `Verify Successful Login` · `Verify Login Error` · `Logout And Verify Redirected To Login` |
 | `pages/checkboxes_page.robot` | Checkbox locators · `Check Checkbox 1 And Verify Selected` · `Uncheck Checkbox 2 And Verify Deselected` |
 | `pages/dropdown_page.robot` | Dropdown locators · `Select Dropdown Option And Verify` |
 | `pages/add_remove_page.robot` | Add/Remove locators · `Add Element And Verify Count` · `Add Multiple Elements And Verify Count` · `Add Element Then Delete And Verify Gone` |
@@ -244,94 +225,81 @@ All three UI suites follow the **Page Object Model (POM)** pattern. Each page in
 
 | File | Responsibility |
 |---|---|
-| `resource.robot` | Browser setup keyword (`Open the browser with the login page practice url`) — URLs & credentials injected by config_loader |
+| `resource.robot` | URLs per region (`&{DEMO_URLS}`), credentials, `CARD_NAME`, browser setup keyword |
 | `pages/login_page.robot` | Login locators · `Fill The Login Form` · `Verify Login Error Message` |
 | `pages/shop_page.robot` | Shop locators · `Verify Shop Page Is Loaded` · `Verify Card Titles In The Shop Page` · `Select Card By Name` |
 | `test_demo.robot` | 3 test cases — imports the 3 files above |
 
 ---
 
-## 🗃️ Config-Driven Test Data
-
-All environment URLs and test credentials are externalised into YAML/JSON files under `config/` and injected into Robot Framework at runtime via `--variablefile config/config_loader.py:<suite>:<region>`. No hardcoded values exist in any `.robot` file.
-
-### Config File Structure
-
-```text
-config/
-├── common_config.yml                    ← Global defaults (browser, headless, region, default_timeout)
-├── config_loader.py                     ← Python --variablefile loader (suite + region → RF variables)
-├── api/
-│   └── jsonplaceholder/
-│       ├── api_test_env_config.yml      ← Base URL per region
-│       └── api_test_data_config.json   ← Request payloads (CreatePost, UpdatePost, PatchPost, CreateComment)
-└── ui/
-    ├── pta/
-    │   ├── ui_test_env_config.yml       ← URLs per region
-    │   ├── ui_test_data_config.yml      ← Credentials  ⚠️ add to .gitignore
-    │   └── ui_test_data_config.yml.example
-    ├── heroku/
-    │   ├── ui_test_env_config.yml
-    │   ├── ui_test_data_config.yml      ⚠️ add to .gitignore
-    │   └── ui_test_data_config.yml.example
-    └── demo/
-        ├── ui_test_env_config.yml
-        ├── ui_test_data_config.yml      ⚠️ add to .gitignore
-        └── ui_test_data_config.yml.example
-```
-
-### Variables Injected per Suite
-
-| Suite | Variable | Source |
-|---|---|---|
-| `pta`, `heroku`, `demo` | `APP_URL` | `ui_test_env_config.yml[REGION].url` |
-| `pta`, `heroku`, `demo` | `VALID_USERNAME`, `VALID_PASSWORD` | `ui_test_data_config.yml` |
-| `pta`, `heroku`, `demo` | `INVALID_USERNAME`, `INVALID_PASSWORD` | `ui_test_data_config.yml` |
-| `demo` only | `CARD_NAME` | `ui_test_data_config.yml` |
-| `api_jsonplaceholder` | `JSONPLACEHOLDER_BASE_URL` | `api_test_env_config.yml[REGION].base_url` |
-| `api_jsonplaceholder` | `CREATE_POST_PAYLOAD`, `UPDATE_POST_PAYLOAD`, `PATCH_POST_PAYLOAD` | `api_test_data_config.json` |
-| all | `DEFAULT_TIMEOUT` | `common_config.yml` |
-
-### Usage
-
-```powershell
-# UI suites — pass suite name and region to config_loader
-robot --variablefile config/config_loader.py:pta:QA          -d output --variable BROWSER:Chrome --variable HEADLESS:TRUE  tests/ui/pta/
-robot --variablefile config/config_loader.py:heroku:STAGE    -d output --variable BROWSER:Firefox --variable HEADLESS:FALSE tests/ui/heroku/
-robot --variablefile config/config_loader.py:demo:PROD       -d output tests/ui/demo/
-
-# API suite
-robot --variablefile config/config_loader.py:api_jsonplaceholder:QA -d output tests/api/jsonplaceholder/
-```
-
-> **Supported suite values:** `pta` · `heroku` · `demo` · `api_jsonplaceholder`
->
-> **Supported region values:** `DEV` · `QA` · `STAGE` · `PROD`
->
-> **Security:** Add `config/ui/**/ui_test_data_config.yml` to `.gitignore`. Commit only the `.example` files. Teams copy and populate locally.
-
----
-
 ## 🌱 Variables
 
-Three variables defined in `tests/ui/common/common.robot` control the browser, headless mode, and target environment. They are inherited by all suite `resource.robot` files via `Resource ../common/common.robot` and can be overridden at runtime via `--variable`.
+### UI Variables
 
-### Variable Reference
+Defined in `tests/ui/common/common.robot` and inherited by all UI suite `resource.robot` files.
 
-| Variable           | Description                          | Default  | Accepted Values              | Required |
-|--------------------|--------------------------------------|----------|------------------------------|:--------:|
-| `BROWSER`          | Browser to launch                    | `Chrome` | `Chrome`, `Edge`, `Firefox`  | Optional |
-| `HEADLESS`         | Run without a visible browser window | `TRUE`   | `TRUE`, `FALSE`              | Optional |
-| `REGION`           | Target environment                   | `QA`     | `DEV`, `QA`, `STAGE`, `PROD` | Optional |
-| `DEFAULT_TIMEOUT`  | Global element wait timeout (seconds)| `10`     | Any positive integer         | Optional |
+| Variable          | Description                           | Default  | Accepted Values              | Required |
+|-------------------|---------------------------------------|----------|------------------------------|:--------:|
+| `BROWSER`         | Browser to launch                     | `Chrome` | `Chrome`, `Edge`, `Firefox`  | Optional |
+| `HEADLESS`        | Run without a visible browser window  | `TRUE`   | `TRUE`, `FALSE`              | Optional |
+| `REGION`          | Target environment                    | `QA`     | `DEV`, `QA`, `STAGE`, `PROD` | Optional |
+| `DEFAULT_TIMEOUT` | Global element wait timeout (seconds) | `10`     | Any positive integer         | Optional |
 
-> **Defined in:** `tests/ui/common/common.robot` — automatically inherited by all suites and page objects.
->
-> Override at runtime — **no code changes needed**:
->
-> ```powershell
-> robot -d output --variable BROWSER:Firefox --variable HEADLESS:FALSE --variable REGION:STAGE tests/ui/pta/
-> ```
+### Credential Environment Variables
+
+Credentials are read from OS environment variables at runtime using Robot Framework's `%{VAR=default}` syntax. If the env var is not set, the built-in default is used — tests work out-of-the-box with no configuration required.
+
+| Environment Variable  | Suite(s)              | Default value              |
+|-----------------------|-----------------------|----------------------------|
+| `VALID_USERNAME`      | pta, heroku, demo     | Suite-specific (see below) |
+| `VALID_PASSWORD`      | pta, heroku, demo     | Suite-specific (see below) |
+| `INVALID_USERNAME`    | pta, heroku, demo     | Suite-specific (see below) |
+| `INVALID_PASSWORD`    | pta, heroku, demo     | Suite-specific (see below) |
+
+**Set credentials before running (PowerShell):**
+
+```powershell
+$env:VALID_USERNAME = "myuser"
+$env:VALID_PASSWORD = "mypassword"
+robot -d output tests/ui/pta/
+```
+
+**Or pass directly via `--variable`:**
+
+```powershell
+robot -d output --variable VALID_USERNAME:myuser --variable VALID_PASSWORD:mypassword tests/ui/pta/
+```
+
+### API Variables
+
+Defined in `tests/api/common/common.robot` and inherited by all API suite `resource.robot` files.
+
+| Variable          | Description            | Default | Accepted Values              | Required |
+|-------------------|------------------------|---------|------------------------------|:--------:|
+| `REGION`          | Target environment     | `QA`    | `DEV`, `QA`, `STAGE`, `PROD` | Optional |
+| `DEFAULT_TIMEOUT` | Request timeout (secs) | `30`    | Any positive integer         | Optional |
+
+### Suite-Level Variables (in each `resource.robot`)
+
+Each suite defines its own URL dictionary and credentials directly in `resource.robot`. The correct URL is resolved at runtime from the dictionary using `${REGION}`.
+
+| Suite | Variable | Description |
+|---|---|---|
+| `pta` | `&{PTA_URLS}` | URL per region |
+| `pta` | `${VALID_USERNAME}`, `${VALID_PASSWORD}`, `${INVALID_USERNAME}`, `${INVALID_PASSWORD}` | Login credentials — read from OS env vars (`%{VAR=default}`) |
+| `heroku` | `&{HEROKU_URLS}` | URL per region |
+| `heroku` | `${VALID_USERNAME}`, `${VALID_PASSWORD}`, `${INVALID_USERNAME}`, `${INVALID_PASSWORD}` | Login credentials — read from OS env vars (`%{VAR=default}`) |
+| `heroku` | `${login_url}`, `${checkboxes_url}`, `${dropdown_url}`, `${add_remove_url}` | URL path segments |
+| `demo` | `&{DEMO_URLS}` | URL per region (real DEV/STAGE/PROD URLs) |
+| `demo` | `${VALID_USERNAME}`, `${VALID_PASSWORD}`, `${INVALID_USERNAME}`, `${INVALID_PASSWORD}`, `${CARD_NAME}` | Credentials + test data — credentials read from OS env vars (`%{VAR=default}`) |
+| `jsonplaceholder` | `&{JSONPLACEHOLDER_URLS}` | Base URL per region |
+| `jsonplaceholder` | `&{CREATE_POST_PAYLOAD}`, `&{UPDATE_POST_PAYLOAD}`, `&{PATCH_POST_PAYLOAD}`, `&{CREATE_COMMENT_PAYLOAD}` | Request payloads |
+
+Override at runtime — **no code changes needed**:
+
+```powershell
+robot -d output --variable BROWSER:Firefox --variable HEADLESS:FALSE --variable REGION:STAGE tests/ui/pta/
+```
 
 ### Headless Mode Arguments per Browser
 
@@ -359,7 +327,6 @@ Three variables defined in `tests/ui/common/common.robot` control the browser, h
 | `-t <name>` / `--test <name>`       | Run a specific test case by name                                      |
 | `-s <name>` / `--suite <name>`      | Run a specific test suite by name                                     |
 | `--variable <name>:<value>`         | Override a variable at runtime (e.g. `--variable BROWSER:Firefox`)   |
-| `--variablefile <file>`             | Load variables from a Python or YAML file                            |
 | `--loglevel <level>`                | Set log level (`TRACE`, `DEBUG`, `INFO`, `WARN`, `ERROR`)            |
 | `--dryrun`                          | Verify test syntax without executing                                  |
 | `--rerunfailed <output.xml>`        | Re-run only failed test cases from a previous run                    |
@@ -367,7 +334,6 @@ Three variables defined in `tests/ui/common/common.robot` control the browser, h
 | `-P <path>` / `--pythonpath <path>` | Extra path(s) to add to Python's module search path                  |
 | `--listener <class>`                | Register a listener class to receive execution events                |
 | `--nostatusrc`                      | Always exit with code 0 (useful in CI to avoid pipeline failure)     |
-| `-v` / `--variable`                 | Set a variable (shorthand form)                                       |
 
 ---
 
@@ -381,26 +347,23 @@ The `executor/` folder contains ready-to-use `.bat` scripts for one-click test e
 - Deletes the `output/` folder if it exists (clean run)
 - Launches the corresponding Robot Framework test suite
 
-| Script                         | Suite              | Default Settings              |
-|--------------------------------|--------------------|-------------------------------|
-| `pta_ui_tests_executor.bat`    | `tests/ui/pta/`    | Chrome · Headless · QA region |
-| `heroku_ui_tests_executor.bat` | `tests/ui/heroku/` | Chrome · Headless · QA region |
-| `demo_ui_tests_executor.bat`   | `tests/ui/demo/`   | Chrome · Headful · QA region  |
+| Script                                    | Suite                          | Default Settings              |
+|-------------------------------------------|--------------------------------|-------------------------------|
+| `pta_ui_tests_executor.bat`               | `tests/ui/pta/`                | Chrome · Headless · QA region |
+| `heroku_ui_tests_executor.bat`            | `tests/ui/heroku/`             | Chrome · Headless · QA region |
+| `demo_ui_tests_executor.bat`              | `tests/ui/demo/`               | Chrome · Headful · QA region  |
+| `jsonplaceholder_api_tests_executor.bat`  | `tests/api/jsonplaceholder/`   | QA region                     |
 
 **Execute from PowerShell (from any directory):**
 
 ```powershell
-# Run PTA tests
 .\executor\pta_ui_tests_executor.bat
-
-# Run Heroku tests
 .\executor\heroku_ui_tests_executor.bat
-
-# Run Demo tests
 .\executor\demo_ui_tests_executor.bat
+.\executor\jsonplaceholder_api_tests_executor.bat
 ```
 
-> **Note:** The `BROWSER`, `HEADLESS`, and `REGION` defaults can be changed directly inside each `.bat` file — no other code changes needed.
+> **Note:** `BROWSER`, `HEADLESS`, and `REGION` defaults can be changed directly inside each `.bat` file — no other code changes needed. Credentials (`VALID_USERNAME`, `VALID_PASSWORD`, etc.) are read from OS environment variables; commented-out `set` examples are provided inside each `.bat` file.
 
 ---
 
@@ -418,19 +381,19 @@ Tests cover login (positive & negative), logout, and empty-field validation agai
 
 ```powershell
 # Chrome headless, QA (default)
-robot --variablefile config/config_loader.py:pta:QA -d output tests/ui/pta/
+robot -d output tests/ui/pta/
 
 # Chrome headful
-robot --variablefile config/config_loader.py:pta:QA -d output --variable HEADLESS:FALSE tests/ui/pta/
+robot -d output --variable HEADLESS:FALSE tests/ui/pta/
 
 # Firefox headless
-robot --variablefile config/config_loader.py:pta:QA -d output --variable BROWSER:Firefox tests/ui/pta/
+robot -d output --variable BROWSER:Firefox tests/ui/pta/
 
 # Edge headful
-robot --variablefile config/config_loader.py:pta:QA -d output --variable BROWSER:Edge --variable HEADLESS:FALSE tests/ui/pta/
+robot -d output --variable BROWSER:Edge --variable HEADLESS:FALSE tests/ui/pta/
 
 # Run against STAGE environment
-robot --variablefile config/config_loader.py:pta:STAGE -d output tests/ui/pta/
+robot -d output --variable REGION:STAGE tests/ui/pta/
 ```
 
 ---
@@ -455,13 +418,13 @@ Tests cover form authentication, checkboxes, dropdown, and add/remove elements a
 
 ```powershell
 # Chrome headless, QA (default)
-robot --variablefile config/config_loader.py:heroku:QA -d output tests/ui/heroku/
+robot -d output tests/ui/heroku/
 
 # Firefox headful
-robot --variablefile config/config_loader.py:heroku:QA -d output --variable BROWSER:Firefox --variable HEADLESS:FALSE tests/ui/heroku/
+robot -d output --variable BROWSER:Firefox --variable HEADLESS:FALSE tests/ui/heroku/
 
 # Run against STAGE
-robot --variablefile config/config_loader.py:heroku:STAGE -d output tests/ui/heroku/
+robot -d output --variable REGION:STAGE tests/ui/heroku/
 ```
 
 ---
@@ -478,16 +441,16 @@ Tests cover login validation and shopping cart card verification against [rahuls
 
 ```powershell
 # Run all tests in the demo suite (Chrome headless, QA by default)
-robot --variablefile config/config_loader.py:demo:QA -d output tests/ui/demo/
+robot -d output tests/ui/demo/
 
 # Run a single test case by name
-robot --variablefile config/config_loader.py:demo:QA -d output --test "TC1 - Validate un-successful login" tests/ui/demo/test_demo.robot
+robot -d output --test "TC1 - Validate un-successful login" tests/ui/demo/test_demo.robot
 
 # Run with Edge in headful mode
-robot --variablefile config/config_loader.py:demo:QA -d output --variable BROWSER:Edge --variable HEADLESS:FALSE tests/ui/demo/
+robot -d output --variable BROWSER:Edge --variable HEADLESS:FALSE tests/ui/demo/
 
-# Run against STAGE (uses real stage URL from ui_test_env_config.yml)
-robot --variablefile config/config_loader.py:demo:STAGE -d output tests/ui/demo/
+# Run against STAGE (uses real stage URL from DEMO_URLS in resource.robot)
+robot -d output --variable REGION:STAGE tests/ui/demo/
 ```
 
 Re-run only failed tests from the last run:
@@ -516,10 +479,10 @@ Full CRUD test suite against the public [JSONPlaceholder REST API](https://jsonp
 
 ```powershell
 # Run all API tests (QA)
-robot --variablefile config/config_loader.py:api_jsonplaceholder:QA -d output/api_test_run tests/api/
+robot -d output tests/api/jsonplaceholder/
 
 # Run against STAGE
-robot --variablefile config/config_loader.py:api_jsonplaceholder:STAGE -d output/api_test_run tests/api/
+robot -d output --variable REGION:STAGE tests/api/jsonplaceholder/
 ```
 
 ---
@@ -566,23 +529,7 @@ robot -d output --exclude skip --exclude wip tests/ui/pta/
 
 > 💡 All test files already have `#    [Tags]    skip` commented out on each test case — simply uncomment the line(s) you want to skip.
 
-#### Option 2 — Exclude with a Custom Tag
-
-Tag individual tests with any meaningful label (e.g. `flaky`, `wip`, `manual`) and exclude that label:
-
-```robot
-TC7 - Select Option 1 from dropdown
-    [Tags]    flaky
-    ...
-```
-
-```powershell
-robot -d output --exclude flaky tests/ui/heroku/
-```
-
-#### Option 3 — Run Only Specific Tests (`--include` / `--test`)
-
-Instead of skipping, run only the tests you want:
+#### Option 2 — Run Only Specific Tests (`--include` / `--test`)
 
 ```powershell
 # Run only tests tagged 'smoke'
@@ -590,21 +537,13 @@ robot -d output --include smoke tests/ui/
 
 # Run a single test by exact name
 robot -d output --test "TC1 - Positive login with valid credentials" tests/ui/pta/test_pta.robot
-
-# Run a specific suite only
-robot -d output --suite test_heroku tests/ui/
 ```
 
-#### Option 4 — `--skip` Flag (Robot Framework 5+)
-
-Skip tests at runtime without tagging them in the file:
+#### Option 3 — `--skip` Flag (Robot Framework 5+)
 
 ```powershell
 # Skip by test name pattern
 robot -d output --skip "TC3*" tests/ui/pta/
-
-# Skip a specific test — marked SKIP instead of FAIL in the report
-robot -d output --skip "TC5 - Negative login with both fields empty" tests/ui/pta/
 ```
 
 > **Note:** Skipped tests appear in the report as **SKIP** (grey) — counted separately from PASS and FAIL.
@@ -614,7 +553,6 @@ robot -d output --skip "TC5 - Negative login with both fields empty" tests/ui/pt
 | Goal                          | Command                                                           |
 |-------------------------------|-------------------------------------------------------------------|
 | Skip tests tagged `skip`      | `robot -d output --exclude skip tests/ui/`                        |
-| Skip tests tagged `flaky`     | `robot -d output --exclude flaky tests/ui/`                       |
 | Run only tests tagged `smoke` | `robot -d output --include smoke tests/ui/`                       |
 | Run one test by name          | `robot -d output --test "TC1 - ..." tests/ui/pta/test_pta.robot`  |
 | Skip by name pattern (RF 5+)  | `robot -d output --skip "TC3*" tests/ui/pta/`                     |
@@ -625,11 +563,7 @@ robot -d output --skip "TC5 - Negative login with both fields empty" tests/ui/pt
 
 [`robotframework-pabot`](https://pabot.org/) (v5.2.2) is included in `requirements.txt` and lets you run Robot Framework suites or test cases in parallel, significantly reducing overall execution time.
 
-> **Important:** All `pabot` (and `robot`) commands below must be run from the **project root** (`Robot-Python-Automation-Framework/`), not from inside the `tests/` folder. Running from the wrong directory will cause a *"File or directory to execute does not exist"* error.
-
-#### How pabot Works
-
-pabot splits execution across multiple parallel processes. Each process runs a separate suite (or test) independently, then merges all results into a single `output.xml`, `log.html` and `report.html` at the end.
+> **Important:** All `pabot` (and `robot`) commands below must be run from the **project root** (`Robot-Python-Automation-Framework/`).
 
 #### Run Suites in Parallel (Suite-Level — Default)
 
@@ -639,9 +573,6 @@ pabot -d output tests/ui/
 
 # Specify the number of parallel processes
 pabot --processes 3 -d output tests/ui/
-
-# Run a specific suite in parallel
-pabot -d output tests/ui/heroku/
 ```
 
 #### Run Test Cases in Parallel (Test-Level)
@@ -650,9 +581,6 @@ pabot -d output tests/ui/heroku/
 # Run all tests in parallel at test level
 pabot --testlevelsplit -d output tests/ui/
 
-# Run a single test file at test level
-pabot --testlevelsplit -d output tests/ui/pta/test_pta.robot
-
 # Combine with explicit process count
 pabot --testlevelsplit --processes 4 -d output tests/ui/
 ```
@@ -660,8 +588,6 @@ pabot --testlevelsplit --processes 4 -d output tests/ui/
 > ⚠️ Use `--testlevelsplit` only when tests are fully independent (no shared state between test cases).
 
 #### Pass Robot Framework Variables with pabot
-
-All `robot` variable overrides work identically with `pabot`:
 
 ```powershell
 # Run in parallel — Firefox, headful, STAGE environment
@@ -678,7 +604,6 @@ pabot --processes 2 -d output --include smoke tests/ui/
 | Run all suites in parallel         | `pabot -d output tests/ui/`                                                 |
 | Set process count                  | `pabot --processes 4 -d output tests/ui/`                                   |
 | Run tests in parallel (test-level) | `pabot --testlevelsplit -d output tests/ui/`                                |
-| Run one file at test level         | `pabot --testlevelsplit -d output tests/ui/pta/test_pta.robot`              |
 | Parallel + custom browser          | `pabot -d output --variable BROWSER:Edge tests/ui/`                         |
 | Parallel + tag filter              | `pabot -d output --include smoke tests/ui/`                                 |
 | Parallel + headful mode            | `pabot -d output --variable HEADLESS:FALSE tests/ui/`                       |
@@ -746,8 +671,14 @@ jobs:
       - name: Install Chrome
         uses: browser-actions/setup-chrome@v1
 
-      - name: Run Robot Framework tests
+      - name: Run UI tests
+        env:
+          VALID_USERNAME: ${{ secrets.VALID_USERNAME }}
+          VALID_PASSWORD: ${{ secrets.VALID_PASSWORD }}
         run: robot -d output --variable BROWSER:Chrome --variable HEADLESS:TRUE tests/ui/
+
+      - name: Run API tests
+        run: robot -d output/api --variable REGION:QA tests/api/
 
       - name: Upload Robot Reports
         if: always()
@@ -786,7 +717,7 @@ This project follows the [Conventional Commits](https://www.conventionalcommits.
 | `feat`     | A new feature                                                           | `feat(pta): add login validation test`                             |
 | `fix`      | A bug fix                                                               | `fix(heroku): correct login locator selector`                      |
 | `chore`    | Routine tasks, dependency updates, tooling — no production logic change | `chore(deps): bump robotframework 7.4.1 → 7.4.2`                  |
-| `docs`     | Documentation-only changes                                              | `docs(readme): add running tests section`                          |
+| `docs`     | Documentation-only changes                                              | `docs(readme): update project structure section`                   |
 | `style`    | Formatting, whitespace — no logic change                                | `style: reformat resource.robot keywords`                          |
 | `refactor` | Code restructured without fixing a bug or adding a feature              | `refactor(common): extract browser setup into common/common.robot` |
 | `test`     | Adding or updating tests                                                | `test(heroku): add add-remove elements test`                       |
@@ -799,12 +730,12 @@ This project follows the [Conventional Commits](https://www.conventionalcommits.
 | Scope      | Refers to                                                                  |
 |------------|----------------------------------------------------------------------------|
 | `deps`     | `requirements.txt` dependency changes                                      |
-| `common`   | `tests/ui/common/common.robot` shared browser keyword file                 |
+| `common`   | `tests/ui/common/common.robot` or `tests/api/common/common.robot`          |
 | `pta`      | PTA UI test suite (`tests/ui/pta/`)                                        |
 | `heroku`   | The Internet Herokuapp UI test suite (`tests/ui/heroku/`)                  |
 | `demo`     | Demo/learning tests (`tests/ui/demo/`)                                     |
+| `api`      | API test suites (`tests/api/`)                                             |
 | `pom`      | Page Object Model — `pages/` files across any suite                        |
-| `config`   | `config/` folder — `config_loader.py`, YAML/JSON env & data config files   |
 | `executor` | Batch executor scripts (`executor/`)                                       |
 | `pabot`    | Parallel execution configuration and pabot-related changes                 |
 | `ci`       | `.github/workflows/`, CI pipeline files                                    |
@@ -813,43 +744,17 @@ This project follows the [Conventional Commits](https://www.conventionalcommits.
 ### Quick Examples
 
 ```text
-feat(executor): add pta_ui_tests_executor.bat, heroku_ui_tests_executor.bat and demo_ui_tests_executor.bat with output cleanup
+feat(executor): add jsonplaceholder_api_tests_executor.bat
 
-feat(demo): add test_demo.robot with login and shopping cart validation
+feat(api): add jsonplaceholder CRUD test suite with RequestsLibrary
 
-feat(common): add multi-browser support with headless/headful mode for Chrome, Edge and Firefox
+refactor(resource): move env URLs and credentials inline into resource.robot files — remove config_loader.py
 
-refactor(common): centralise browser setup into tests/ui/common/common.robot
+fix(pta): fix TC4 logout verification to use Verify Redirected To Login Page
 
-feat(common): add DEFAULT_TIMEOUT variable for centralised element wait control
+fix(api): add REGION variable to tests/api/common/common.robot
 
-feat(pta): add logout and empty-field negative login test cases
-
-feat(heroku): add checkboxes, dropdown and add/remove elements test cases
-
-fix(demo): update card_titles locator to match updated DOM
-
-chore(deps): bump robotframework-seleniumlibrary 6.7.0 → 6.8.0
-
-chore(deps): add pyyaml==6.0.3 for config_loader.py YAML parsing
-
-feat(pabot): add robotframework-pabot for parallel suite and test execution
-
-refactor(pom): extract pta locators and keywords into pages/login_page.robot and pages/dashboard_page.robot
-
-refactor(pom): extract heroku locators into pages/login_page, checkboxes_page, dropdown_page and add_remove_page
-
-refactor(pom): extract demo locators and keywords into pages/login_page.robot and pages/shop_page.robot
-
-feat(config): add config_loader.py with common_config.yml and per-suite YAML/JSON env and test data configs
-
-refactor(config): remove hardcoded APP_URLS and credentials from all resource.robot files — inject via --variablefile
-
-refactor(executor): update all .bat scripts to use --variablefile config/config_loader.py:<suite>:<region>
-
-docs(readme): update variables section and running tests with multi-browser headless reference
-
-test(heroku): add basic auth and broken images tests
+chore(deps): add robotframework-requests==0.9.7 for API testing
 ```
 
 ---
@@ -974,4 +879,3 @@ npm install -g dkmaker-mcp-rest-api
 ### 🤖 Happy Testing! 🤖
 
 </div>
-

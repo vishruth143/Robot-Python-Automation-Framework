@@ -34,3 +34,9 @@ Verify Error Message
 Verify Error Message Is Visible
     [Documentation]    Waits for the error message element to be visible (without asserting text).
     Wait Until Element Is Visible    ${error_message_txt}    timeout=${DEFAULT_TIMEOUT}s
+
+Verify Redirected To Login Page
+    [Documentation]    Confirms the user has been returned to the login page after logout.
+    Wait Until Element Is Visible    ${submit_btn}    timeout=${DEFAULT_TIMEOUT}s
+    Location Should Contain          practice-test-login
+

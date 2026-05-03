@@ -29,7 +29,7 @@ TC4 - Verify logout after successful login
     Fill The Login Form    ${VALID_USERNAME}    ${VALID_PASSWORD}
     Verify Successful Login
     Click Logout Button
-    Verify Error Message Is Visible
+    Verify Redirected To Login Page
 
 TC5 - Negative login with both fields empty
 #    [Tags]    skip

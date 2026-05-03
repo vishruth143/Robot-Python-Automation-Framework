@@ -1,7 +1,0 @@
-# Heroku UI — Test Data Configuration (example/template)
-# Copy this file to ui_test_data_config.yml and fill in real values.
-
-valid_username: <your_valid_username>
-valid_password: <your_valid_password>
-invalid_username: <your_invalid_username>
-invalid_password: <your_invalid_password>
