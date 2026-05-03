@@ -92,7 +92,7 @@ jobs:
 
       - name: Run All Tests in Parallel with Pabot
         run: |
-          python -m pabot \
+          pabot \
             --processes 4 \
             --outputdir output \
             --output output.xml \
