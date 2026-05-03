@@ -1,4 +1,4 @@
-name: UI Tests
+name: CI Tests
 
 on:
   push:
@@ -8,6 +8,36 @@ on:
   workflow_dispatch:
 
 jobs:
+  api-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13.7'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Dry Run (validate API tests)
+        run: |
+          robot --dryrun -d dryrun_output tests/api/
+
+      - name: Run API Tests
+        run: |
+          robot -d output tests/api/
+
+      - name: Upload API Test Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: robot-results-API
+          path: output/
+
   ui-tests:
     runs-on: ubuntu-latest
 
@@ -40,11 +70,15 @@ jobs:
         if: ${{ matrix.browser == 'EDGE' }}
         uses: browser-actions/setup-edge@v1
 
-      - name: Run Demo UI Tests
+      - name: Dry Run (validate UI tests)
         run: |
-          robot -d output --variable BROWSER:${{ matrix.browser }} --variable HEADLESS:TRUE tests/ui/demo/
+          robot --dryrun -d dryrun_output --variable BROWSER:${{ matrix.browser }} --variable HEADLESS:TRUE tests/ui/
 
-      - name: Upload Test Results
+      - name: Run UI Tests
+        run: |
+          robot -d output --variable BROWSER:${{ matrix.browser }} --variable HEADLESS:TRUE tests/ui/
+
+      - name: Upload UI Test Results
         if: always()
         uses: actions/upload-artifact@v4
         with:
