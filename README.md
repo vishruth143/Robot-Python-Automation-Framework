@@ -694,57 +694,106 @@ rebot --merge -d output output/output.xml output/output_2.xml
 
 ### 🐙 GitHub Actions
 
-The pipeline triggers automatically when changes are pushed or merged to `main`.
+The pipeline (`.github/workflows/ci.yml`) runs **API tests** and **UI tests in parallel across 3 browsers** (Chrome, Firefox, Edge).
 
-**Sample workflow** (`.github/workflows/ci.yml`):
+**Triggers:**
+
+| Trigger | Condition |
+|---------|-----------|
+| Push | Any branch — when files in `.github/`, `config/`, `framework/`, `tests/`, `pytest.ini`, or `requirements.txt` change |
+| Pull Request | To `main` |
+| Schedule | Daily at 09:00 AM IST (`cron: '30 3 * * *'`) |
+| Manual | `workflow_dispatch` — "Run workflow" button in Actions tab |
+
+**Jobs:**
+
+| Job | Runner | Description |
+|-----|--------|-------------|
+| `API-tests` | `ubuntu-latest` | Dry-run validation → Run all API tests → Upload artifacts |
+| `UI-tests` (×3) | `ubuntu-latest` | Installs browser (Chrome/Firefox/Edge) → Dry-run validation → Run all UI tests headless → Upload artifacts |
+
+All jobs run **in parallel**. The UI job uses a matrix strategy with `fail-fast: false` so all browsers run regardless of individual failures.
+
+**Workflow file** (`.github/workflows/ci.yml`):
 
 ```yaml
-name: Robot Framework CI
+name: CI Tests
 
 on:
   push:
-    branches: [main]
+    paths:
+      - '.github/**'
+      - 'config/**'
+      - 'framework/**'
+      - 'tests/**'
+      - 'pytest.ini'
+      - 'requirements.txt'
+    branches:
+      - '**'
   pull_request:
-    branches: [main]
+    branches:
+      - main
+  workflow_dispatch:
+  schedule:
+    - cron: '30 3 * * *'
 
 jobs:
-  test:
+  API-tests:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
-          python-version: "3.13"
-
-      - name: Install dependencies
-        run: pip install -r requirements.txt
-
-      - name: Install Chrome
-        uses: browser-actions/setup-chrome@v1
-
-      - name: Run UI tests
-        env:
-          VALID_USERNAME: ${{ secrets.VALID_USERNAME }}
-          VALID_PASSWORD: ${{ secrets.VALID_PASSWORD }}
-        run: robot -d output --variable BROWSER:Chrome --variable HEADLESS:TRUE tests/ui/
-
-      - name: Run API tests
-        run: robot -d output/api --variable REGION:QA tests/api/
-
-      - name: Upload Robot Reports
+          python-version: '3.13.7'
+      - run: pip install -r requirements.txt
+      - name: Dry Run (validate API tests)
+        run: robot --dryrun -d dryrun_output tests/api/
+      - name: Run API Tests
+        run: robot -d output tests/api/
+      - name: Upload API Test Results
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: robot-reports
+          name: robot-results-API
+          path: output/
+
+  UI-tests:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [CHROME, FIREFOX, EDGE]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13.7'
+      - run: pip install -r requirements.txt
+      - name: Install Chrome
+        if: ${{ matrix.browser == 'CHROME' }}
+        uses: browser-actions/setup-chrome@v1
+      - name: Install Firefox
+        if: ${{ matrix.browser == 'FIREFOX' }}
+        uses: browser-actions/setup-firefox@v1
+      - name: Install Edge
+        if: ${{ matrix.browser == 'EDGE' }}
+        uses: browser-actions/setup-edge@v1
+      - name: Dry Run (validate UI tests)
+        run: robot --dryrun -d dryrun_output --variable BROWSER:${{ matrix.browser }} --variable HEADLESS:TRUE tests/ui/
+      - name: Run UI Tests
+        run: robot -d output --variable BROWSER:${{ matrix.browser }} --variable HEADLESS:TRUE tests/ui/
+      - name: Upload UI Test Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: robot-results-${{ matrix.browser }}
           path: output/
 ```
 
 **Viewing results:**
 
 1. Go to the **Actions** tab in GitHub → select the latest workflow run.
-2. Download `robot-reports.zip` from the **Artifacts** section.
+2. Download artifacts (`robot-results-API`, `robot-results-CHROME`, `robot-results-FIREFOX`, `robot-results-EDGE`) from the **Artifacts** section.
 3. Extract the zip and open `report.html` in your browser.
 
 ---

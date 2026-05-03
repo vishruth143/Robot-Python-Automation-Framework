@@ -2,4 +2,3 @@ robotframework                  ==  7.4.2       # Core Robot Framework test auto
 robotframework-seleniumlibrary  ==  6.8.0       # Selenium-based browser interaction keywords for Robot Framework
 robotframework-pabot            ==  5.2.2       # Parallel executor for Robot Framework - run suites/tests concurrently
 robotframework-requests         ==  0.9.7       # HTTP library for Robot Framework, based on the Requests library
-webdriver-manager               ==  4.0.2       # Automatic ChromeDriver/GeckoDriver download matching installed browser
