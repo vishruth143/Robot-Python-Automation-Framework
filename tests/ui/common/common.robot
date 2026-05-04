@@ -67,4 +67,5 @@ Open Browser For URL
     END
 
 Close Browser Session
+    Run Keyword If Test Failed    Capture Page Screenshot
     Close All Browsers
