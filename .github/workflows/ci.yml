@@ -99,3 +99,67 @@ jobs:
         with:
           name: robot-results-${{ matrix.browser }}
           path: output/
+          
+  # Notification job: sends CI status to Microsoft Teams via webhook
+  notify:
+    runs-on: ubuntu-latest
+    needs: [API-tests, UI-tests]
+    if: always()
+
+    steps:
+      - name: Send notification to Microsoft Teams
+        run: |
+          API_STATUS="${{ needs.API-tests.result }}"
+          UI_STATUS="${{ needs.UI-tests.result }}"
+
+          if [ "$API_STATUS" = "success" ] && [ "$UI_STATUS" = "success" ]; then
+            OVERALL="✅ Success"
+            COLOR="00FF00"
+          else
+            OVERALL="❌ Failure"
+            COLOR="FF0000"
+          fi
+
+          PAYLOAD=$(cat <<EOF
+          {
+            "type": "message",
+            "attachments": [
+              {
+                "contentType": "application/vnd.microsoft.card.adaptive",
+                "content": {
+                  "\$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+                  "type": "AdaptiveCard",
+                  "version": "1.4",
+                  "body": [
+                    {
+                      "type": "TextBlock",
+                      "size": "Medium",
+                      "weight": "Bolder",
+                      "text": "CI Tests - ${OVERALL}"
+                    },
+                    {
+                      "type": "FactSet",
+                      "facts": [
+                        { "title": "Repository", "value": "${{ github.repository }}" },
+                        { "title": "Branch", "value": "${{ github.ref_name }}" },
+                        { "title": "Triggered by", "value": "${{ github.actor }}" },
+                        { "title": "API Tests", "value": "${API_STATUS}" },
+                        { "title": "UI Tests", "value": "${UI_STATUS}" }
+                      ]
+                    }
+                  ],
+                  "actions": [
+                    {
+                      "type": "Action.OpenUrl",
+                      "title": "View Run",
+                      "url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+          EOF
+          )
+
+          curl -H "Content-Type: application/json" -d "$PAYLOAD" "${{ secrets.TEAMS_WEBHOOK_URL }}"
