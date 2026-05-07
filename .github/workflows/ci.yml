@@ -25,6 +25,12 @@ on:
 jobs:
   API-tests:
     runs-on: ubuntu-latest
+    outputs:
+      total: ${{ steps.stats.outputs.total }}
+      passed: ${{ steps.stats.outputs.passed }}
+      failed: ${{ steps.stats.outputs.failed }}
+      skipped: ${{ steps.stats.outputs.skipped }}
+      failed_tests: ${{ steps.stats.outputs.failed_tests }}
 
     steps:
       - name: Checkout code
@@ -46,6 +52,47 @@ jobs:
         run: |
           robot -d output tests/api/
 
+      - name: Parse test statistics
+        id: stats
+        if: always()
+        run: |
+          python3 - <<'PYEOF'
+          import xml.etree.ElementTree as ET, os, sys
+
+          path = "output/output.xml"
+          if not os.path.exists(path):
+              for key in ("total","passed","failed","skipped","failed_tests"):
+                  print(f"::set-output name={key}::N/A")
+              sys.exit(0)
+
+          tree = ET.parse(path)
+          root = tree.getroot()
+
+          stat_el = root.find(".//statistics/total/stat[@name='All Tests']")
+          if stat_el is None:
+              stat_el = root.find(".//statistics/total/stat")
+
+          passed  = int(stat_el.get("pass",  0)) if stat_el is not None else 0
+          failed  = int(stat_el.get("fail",  0)) if stat_el is not None else 0
+          skipped = int(stat_el.get("skip",  0)) if stat_el is not None else 0
+          total   = passed + failed + skipped
+
+          failed_names = []
+          for test in root.iter("test"):
+              status_el = test.find("status")
+              if status_el is not None and status_el.get("status") == "FAIL":
+                  failed_names.append(test.get("name", "unknown"))
+
+          failed_str = ", ".join(failed_names) if failed_names else "None"
+
+          with open(os.environ["GITHUB_OUTPUT"], "a") as fh:
+              fh.write(f"total={total}\n")
+              fh.write(f"passed={passed}\n")
+              fh.write(f"failed={failed}\n")
+              fh.write(f"skipped={skipped}\n")
+              fh.write(f"failed_tests={failed_str}\n")
+          PYEOF
+
       - name: Upload API Test Results
         if: always()
         uses: actions/upload-artifact@v4
@@ -55,6 +102,12 @@ jobs:
 
   UI-tests:
     runs-on: ubuntu-latest
+    outputs:
+      total: ${{ steps.stats.outputs.total }}
+      passed: ${{ steps.stats.outputs.passed }}
+      failed: ${{ steps.stats.outputs.failed }}
+      skipped: ${{ steps.stats.outputs.skipped }}
+      failed_tests: ${{ steps.stats.outputs.failed_tests }}
 
     strategy:
       fail-fast: false
@@ -93,13 +146,54 @@ jobs:
         run: |
           robot -d output --variable BROWSER:${{ matrix.browser }} --variable HEADLESS:TRUE tests/ui/
 
+      - name: Parse test statistics
+        id: stats
+        if: always()
+        run: |
+          python3 - <<'PYEOF'
+          import xml.etree.ElementTree as ET, os, sys
+
+          path = "output/output.xml"
+          if not os.path.exists(path):
+              for key in ("total","passed","failed","skipped","failed_tests"):
+                  print(f"::set-output name={key}::N/A")
+              sys.exit(0)
+
+          tree = ET.parse(path)
+          root = tree.getroot()
+
+          stat_el = root.find(".//statistics/total/stat[@name='All Tests']")
+          if stat_el is None:
+              stat_el = root.find(".//statistics/total/stat")
+
+          passed  = int(stat_el.get("pass",  0)) if stat_el is not None else 0
+          failed  = int(stat_el.get("fail",  0)) if stat_el is not None else 0
+          skipped = int(stat_el.get("skip",  0)) if stat_el is not None else 0
+          total   = passed + failed + skipped
+
+          failed_names = []
+          for test in root.iter("test"):
+              status_el = test.find("status")
+              if status_el is not None and status_el.get("status") == "FAIL":
+                  failed_names.append(test.get("name", "unknown"))
+
+          failed_str = ", ".join(failed_names) if failed_names else "None"
+
+          with open(os.environ["GITHUB_OUTPUT"], "a") as fh:
+              fh.write(f"total={total}\n")
+              fh.write(f"passed={passed}\n")
+              fh.write(f"failed={failed}\n")
+              fh.write(f"skipped={skipped}\n")
+              fh.write(f"failed_tests={failed_str}\n")
+          PYEOF
+
       - name: Upload UI Test Results
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: robot-results-${{ matrix.browser }}
           path: output/
-          
+
   # Notification job: sends CI status to Microsoft Teams via webhook
   notify:
     runs-on: ubuntu-latest
@@ -112,12 +206,43 @@ jobs:
           API_STATUS="${{ needs.API-tests.result }}"
           UI_STATUS="${{ needs.UI-tests.result }}"
 
+          # ── Overall result ────────────────────────────────────────────────────
           if [ "$API_STATUS" = "success" ] && [ "$UI_STATUS" = "success" ]; then
-            OVERALL="✅ Success"
-            COLOR="00FF00"
+            OVERALL="✅ All Tests Passed"
           else
-            OVERALL="❌ Failure"
-            COLOR="FF0000"
+            OVERALL="❌ Some Tests Failed"
+          fi
+
+          # ── API stats ─────────────────────────────────────────────────────────
+          API_TOTAL="${{ needs.API-tests.outputs.total }}"
+          API_PASSED="${{ needs.API-tests.outputs.passed }}"
+          API_FAILED="${{ needs.API-tests.outputs.failed }}"
+          API_SKIPPED="${{ needs.API-tests.outputs.skipped }}"
+          API_FAILED_TESTS="${{ needs.API-tests.outputs.failed_tests }}"
+
+          # ── UI stats ──────────────────────────────────────────────────────────
+          UI_TOTAL="${{ needs.UI-tests.outputs.total }}"
+          UI_PASSED="${{ needs.UI-tests.outputs.passed }}"
+          UI_FAILED="${{ needs.UI-tests.outputs.failed }}"
+          UI_SKIPPED="${{ needs.UI-tests.outputs.skipped }}"
+          UI_FAILED_TESTS="${{ needs.UI-tests.outputs.failed_tests }}"
+
+          # ── Combined totals ───────────────────────────────────────────────────
+          TOTAL=$(( ${API_TOTAL:-0} + ${UI_TOTAL:-0} ))
+          PASSED=$(( ${API_PASSED:-0} + ${UI_PASSED:-0} ))
+          FAILED=$(( ${API_FAILED:-0} + ${UI_FAILED:-0} ))
+          SKIPPED=$(( ${API_SKIPPED:-0} + ${UI_SKIPPED:-0} ))
+
+          # ── UI failures block (only shown when there are failures) ─────────────
+          UI_FAILURES_BLOCK=""
+          if [ "${UI_FAILED:-0}" -gt 0 ] 2>/dev/null; then
+            UI_FAILURES_BLOCK=",{\"type\":\"TextBlock\",\"text\":\"↳ 🖥️ UI Failures\",\"weight\":\"Bolder\",\"spacing\":\"None\"},{\"type\":\"TextBlock\",\"text\":\"${UI_FAILED_TESTS}\",\"wrap\":true,\"color\":\"Attention\",\"spacing\":\"None\"}"
+          fi
+
+          # ── API failures block (only shown when there are failures) ────────────
+          API_FAILURES_BLOCK=""
+          if [ "${API_FAILED:-0}" -gt 0 ] 2>/dev/null; then
+            API_FAILURES_BLOCK=",{\"type\":\"TextBlock\",\"text\":\"↳ 🔌 API Failures\",\"weight\":\"Bolder\",\"spacing\":\"None\"},{\"type\":\"TextBlock\",\"text\":\"${API_FAILED_TESTS}\",\"wrap\":true,\"color\":\"Attention\",\"spacing\":\"None\"}"
           fi
 
           PAYLOAD=$(cat <<EOF
@@ -133,20 +258,50 @@ jobs:
                   "body": [
                     {
                       "type": "TextBlock",
-                      "size": "Medium",
+                      "size": "Large",
                       "weight": "Bolder",
-                      "text": "CI Tests - ${OVERALL}"
+                      "text": "CI Tests — ${OVERALL}"
                     },
                     {
                       "type": "FactSet",
                       "facts": [
-                        { "title": "Repository", "value": "${{ github.repository }}" },
-                        { "title": "Branch", "value": "${{ github.ref_name }}" },
-                        { "title": "Triggered by", "value": "${{ github.actor }}" },
-                        { "title": "API Tests", "value": "${API_STATUS}" },
-                        { "title": "UI Tests", "value": "${UI_STATUS}" }
+                        { "title": "Repository",   "value": "${{ github.repository }}" },
+                        { "title": "Branch",        "value": "${{ github.ref_name }}" },
+                        { "title": "Triggered by",  "value": "${{ github.actor }}" },
+                        { "title": "API Job",       "value": "${API_STATUS}" },
+                        { "title": "UI Job",        "value": "${UI_STATUS}" }
+                      ]
+                    },
+                    { "type": "ColumnSet",
+                      "columns": [
+                        { "type": "Column", "width": "stretch",
+                          "items": [
+                            { "type": "TextBlock", "text": "Total Tests", "weight": "Bolder" },
+                            { "type": "TextBlock", "text": "${TOTAL}", "size": "ExtraLarge", "weight": "Bolder", "spacing": "None" }
+                          ]
+                        },
+                        { "type": "Column", "width": "stretch",
+                          "items": [
+                            { "type": "TextBlock", "text": "✅ Passed", "weight": "Bolder", "color": "Good" },
+                            { "type": "TextBlock", "text": "${PASSED}", "size": "ExtraLarge", "weight": "Bolder", "color": "Good", "spacing": "None" }
+                          ]
+                        },
+                        { "type": "Column", "width": "stretch",
+                          "items": [
+                            { "type": "TextBlock", "text": "❌ Failed", "weight": "Bolder", "color": "Attention" },
+                            { "type": "TextBlock", "text": "${FAILED}", "size": "ExtraLarge", "weight": "Bolder", "color": "Attention", "spacing": "None" }
+                          ]
+                        },
+                        { "type": "Column", "width": "stretch",
+                          "items": [
+                            { "type": "TextBlock", "text": "⏭️ Skipped", "weight": "Bolder", "color": "Warning" },
+                            { "type": "TextBlock", "text": "${SKIPPED}", "size": "ExtraLarge", "weight": "Bolder", "color": "Warning", "spacing": "None" }
+                          ]
+                        }
                       ]
                     }
+                    ${UI_FAILURES_BLOCK}
+                    ${API_FAILURES_BLOCK}
                   ],
                   "actions": [
                     {
