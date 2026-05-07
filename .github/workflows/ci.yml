@@ -77,11 +77,23 @@ jobs:
           skipped = int(stat_el.get("skip",  0)) if stat_el is not None else 0
           total   = passed + failed + skipped
 
+          # Build a parent-map so we can walk up to find the suite name
+          parent_map = {child: parent for parent in root.iter() for child in parent}
+
+          def get_suite_name(test_el):
+              """Walk up the tree to find the direct parent <suite> name."""
+              p = parent_map.get(test_el)
+              if p is not None and p.tag == "suite":
+                  return p.get("name", "")
+              return ""
+
           failed_names = []
           for test in root.iter("test"):
               status_el = test.find("status")
               if status_el is not None and status_el.get("status") == "FAIL":
-                  failed_names.append(test.get("name", "unknown"))
+                  suite = get_suite_name(test)
+                  label = f"[{suite}] {test.get('name', 'unknown')}" if suite else test.get("name", "unknown")
+                  failed_names.append(label)
 
           failed_str = ", ".join(failed_names) if failed_names else "None"
 
@@ -171,11 +183,23 @@ jobs:
           skipped = int(stat_el.get("skip",  0)) if stat_el is not None else 0
           total   = passed + failed + skipped
 
+          # Build a parent-map so we can walk up to find the suite name
+          parent_map = {child: parent for parent in root.iter() for child in parent}
+
+          def get_suite_name(test_el):
+              """Walk up the tree to find the direct parent <suite> name."""
+              p = parent_map.get(test_el)
+              if p is not None and p.tag == "suite":
+                  return p.get("name", "")
+              return ""
+
           failed_names = []
           for test in root.iter("test"):
               status_el = test.find("status")
               if status_el is not None and status_el.get("status") == "FAIL":
-                  failed_names.append(test.get("name", "unknown"))
+                  suite = get_suite_name(test)
+                  label = f"[{suite}] {test.get('name', 'unknown')}" if suite else test.get("name", "unknown")
+                  failed_names.append(label)
 
           failed_str = ", ".join(failed_names) if failed_names else "None"
 
@@ -236,13 +260,16 @@ jobs:
           # ── UI failures block (only shown when there are failures) ─────────────
           UI_FAILURES_BLOCK=""
           if [ "${UI_FAILED:-0}" -gt 0 ] 2>/dev/null; then
-            UI_FAILURES_BLOCK=",{\"type\":\"TextBlock\",\"text\":\"↳ 🖥️ UI Failures\",\"weight\":\"Bolder\",\"spacing\":\"None\"},{\"type\":\"TextBlock\",\"text\":\"${UI_FAILED_TESTS}\",\"wrap\":true,\"color\":\"Attention\",\"spacing\":\"None\"}"
+            # Replace ", " with newline so each failure appears on its own line
+            UI_FAILURES_LIST=$(echo "${UI_FAILED_TESTS}" | sed 's/, /\n/g')
+            UI_FAILURES_BLOCK=",{\"type\":\"TextBlock\",\"text\":\"↳ 🖥️ UI Failures\",\"weight\":\"Bolder\",\"spacing\":\"Small\"},{\"type\":\"TextBlock\",\"text\":\"${UI_FAILURES_LIST}\",\"wrap\":true,\"color\":\"Attention\",\"spacing\":\"None\"}"
           fi
 
           # ── API failures block (only shown when there are failures) ────────────
           API_FAILURES_BLOCK=""
           if [ "${API_FAILED:-0}" -gt 0 ] 2>/dev/null; then
-            API_FAILURES_BLOCK=",{\"type\":\"TextBlock\",\"text\":\"↳ 🔌 API Failures\",\"weight\":\"Bolder\",\"spacing\":\"None\"},{\"type\":\"TextBlock\",\"text\":\"${API_FAILED_TESTS}\",\"wrap\":true,\"color\":\"Attention\",\"spacing\":\"None\"}"
+            API_FAILURES_LIST=$(echo "${API_FAILED_TESTS}" | sed 's/, /\n/g')
+            API_FAILURES_BLOCK=",{\"type\":\"TextBlock\",\"text\":\"↳ 🔌 API Failures\",\"weight\":\"Bolder\",\"spacing\":\"Small\"},{\"type\":\"TextBlock\",\"text\":\"${API_FAILURES_LIST}\",\"wrap\":true,\"color\":\"Attention\",\"spacing\":\"None\"}"
           fi
 
           PAYLOAD=$(cat <<EOF
